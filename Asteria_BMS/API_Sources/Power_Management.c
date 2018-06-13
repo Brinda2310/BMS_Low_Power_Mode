@@ -66,7 +66,7 @@ void MCU_Exit_Sleep_Mode()
 	BMS_Status_Error_LED_Init();
 
 	/* Initialize the status LEDs which indicates the SOC and SOH */
-	if (Debug_COM_Enable == false)
+	if(Debug_COM_Enable == false)
 	{
 		BMS_SOH_SOC_LEDs_Init();
 	}
@@ -88,30 +88,30 @@ void MCU_Exit_Sleep_Mode()
 void SystemClock_Decrease(void)
 {
 #if BMS_VERSION == BMS_V1
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 
-  /* MSI is enabled after System reset, activate PLL with MSI as source */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
-  RCC_OscInitStruct.HSEState = RCC_HSE_OFF;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-  RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_0;
-  RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-  HAL_RCC_OscConfig(&RCC_OscInitStruct);
+	/* MultiSpeedInternal clock select */
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
+	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
 
-  /* Select MSI as system clock source and configure the HCLK, PCLK1 and PCLK2
-     clocks dividers */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_SYSCLK;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+	/* MSI = 1MHz for low power mode of MCU */
+	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_4;
+	RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
-  /* Disable HSI to reduce power consumption since MSI is used from that point */
-  __HAL_RCC_HSI_DISABLE();
+	/* Select MSI as system clock source and configure the HCLK, PCLK1 and PCLK2
+	   clocks dividers */
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_SYSCLK;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_MSI;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+
+	/* Disable HSI to reduce power consumption since MSI is used from that point */
+	__HAL_RCC_HSI_DISABLE();
 #endif
 }
 
@@ -128,9 +128,10 @@ void Set_System_Clock_Frequency(void)
 	RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
+	/* The peripheral frequency is set to Frequency = ((RCC_MSI_RANGE * PLLN)/PLLR) */
 	RCC_OscInitStruct.PLL.PLLM = 1;
-	RCC_OscInitStruct.PLL.PLLN = 40;
-	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+	RCC_OscInitStruct.PLL.PLLN = 10;
+	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV8;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
 	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
 
