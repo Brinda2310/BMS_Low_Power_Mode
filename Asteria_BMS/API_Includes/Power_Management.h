@@ -38,6 +38,7 @@ void MCU_Exit_Sleep_Mode();
 void SystemClock_Decrease(void);
 void Set_System_Clock_Frequency(void);
 uint8_t Get_Reset_Source();
-
+void Enter_Normal_Mode(void);
+void Enter_LP_Mode(void);
 
 #endif /* POWER_MANAGEMENT_H_ */

@@ -20,7 +20,7 @@ void BMS_Debug_COM_Init()
 	{
 		if(MCU_Power_Mode == REGULAR_POWER_MODE)
 		{
-			USART_Init(USART_1,REGULAR_POWER_MODE_BUAD_RATE);
+			USART_Init(USART_1,LOW_POWER_MODE_BAUD_RATE);
 		}
 		else
 		{
@@ -53,7 +53,7 @@ void BMS_Debug_COM_Write_Data(void *TxBuffer,uint16_t Size)
 	{
 		USART_Write(USART_1,TxBuffer,Size);
 		/* Delay is required to allow USART to send all the bytes from TxBuffer as it is configured in interrupt mode */
-		Delay_Millis(2);
+//		Delay_Millis(2);
 	}
 }
 

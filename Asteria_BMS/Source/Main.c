@@ -123,18 +123,18 @@ int main(void)
 	{
 		BMS_Debug_COM_Read_Data(&RecData,1);
 
-//		if(RecData == 'A')
-//		{
-//			MCU_Power_Mode = REGULAR_POWER_MODE;
-//			Enter_Normal_Mode();
-//		}
-//		else if (RecData == 'B')
-//		{
-//			MCU_Power_Mode = LOW_POWER_MODE;
-//			Enter_LP_Mode();
-//		}
-//
-//		RecData = 0;
+		if(RecData == 'A' && MCU_Power_Mode != REGULAR_POWER_MODE)
+		{
+			Enter_Normal_Mode();
+			BMS_Debug_COM_Write_Data(Data1, 13);
+		}
+		else if (RecData == 'B' && MCU_Power_Mode != LOW_POWER_MODE)
+		{
+			Enter_LP_Mode();
+			BMS_Debug_COM_Write_Data(Data, 13);
+		}
+
+		RecData = 0;
 
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
@@ -146,17 +146,7 @@ int main(void)
 		if(_1Hz_Flag == true)
 		{
 			BMS_Status_Error_LED_Toggle();
-			BMS_Debug_COM_Write_Data(Data,12);
-			BMS_Debug_COM_Write_Data(Data1,13);
 			_1Hz_Flag = false;
 		}
-
-		if(RecData == 'A')
-		{
-		}
-		else if (RecData == 'B')
-		{
-		}
-		RecData = 0;
 	}
 }

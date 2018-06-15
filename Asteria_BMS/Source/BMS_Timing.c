@@ -34,14 +34,14 @@ void BMS_Timers_Init()
 		/* Timer value set to 1 second */
 		Timer_Init(TIMER_6,NORMAL_MODE_1_SECONDS);
 	}
-//	else if (MCU_Power_Mode == LOW_POWER_MODE)
-//	{
-//		/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
-//		Timer_Init(TIMER_2,_40ms_PERIOD);
-//
-//		/* Timer value set to 1 second */
-//		Timer_Init(TIMER_6,_1SEC_PERIOD);
-//	}
+	else if (MCU_Power_Mode == LOW_POWER_MODE)
+	{
+		/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
+		Timer_Init(TIMER_2,LOW_POWER_MODE_40ms_PERIOD);
+
+		/* Timer value set to 1 second */
+		Timer_Init(TIMER_6,LOW_POWER_MODE_1SEC_PERIOD);
+	}
 }
 
 /**

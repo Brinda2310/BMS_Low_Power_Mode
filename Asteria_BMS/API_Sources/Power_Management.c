@@ -123,6 +123,10 @@ void Enter_Normal_Mode(void)
 {
 	if(MCU_Power_Mode != REGULAR_POWER_MODE)
 	{
+		_25Hz_Flag = false;
+
+		MCU_Power_Mode = REGULAR_POWER_MODE;
+
 		USART_Reset(USART_1);
 
 		/* Check whether regulator is in main mode or low power mode. As soon as
@@ -157,7 +161,9 @@ void Enter_LP_Mode(void)
 {
 	if(MCU_Power_Mode != LOW_POWER_MODE)
 	{
-//		Stop_Log();
+		_25Hz_Flag = false;
+
+		MCU_Power_Mode = LOW_POWER_MODE;
 
 		USART_Reset(USART_1);
 
@@ -174,14 +180,10 @@ void Enter_LP_Mode(void)
 		BMS_Timers_Init();
 
 		/* Initialize the status LEDs which indicates the SOC and SOH */
-		if(Debug_COM_Enable == false)
-		{
-			BMS_SOH_SOC_LEDs_Init();
-		}
-		{
-			/* Initialize the USART to 115200 baud rate to debug the code */
-			BMS_Debug_COM_Init();
-		}
+		BMS_SOH_SOC_LEDs_Init();
+
+		/* Initialize the USART to 115200 baud rate to debug the code */
+		BMS_Debug_COM_Init();
 
 		/* Enter LP RUN Mode */
 		HAL_PWREx_EnableLowPowerRunMode();
