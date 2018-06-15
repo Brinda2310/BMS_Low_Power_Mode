@@ -92,6 +92,5 @@ void TIM2_PeriodElapsedCallback()
 void TIM6_PeriodElapsedCallback(void)
 {
 	Loop_Rate_Log_Counter = Loop_Rate_Counter;
-	BMS_Status_Error_LED_Toggle();
 	Loop_Rate_Counter = 0;
 }

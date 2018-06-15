@@ -111,14 +111,215 @@ int main(void)
 	/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
 
-	BMS_SOH_SOC_LEDs_Init();
+	if(Debug_COM_Enable == true)
+	{
+		BMS_SOH_SOC_LEDs_Init();
+	}
+	else
+	{
+		/* Initialize the USART to 115200 baud rate to debug the code */
 
-	/* Initialize the USART to 115200 baud rate to debug the code */
+	}
+
 	BMS_Debug_COM_Init();
 
-	uint8_t Data[20] = "Hello Bytes\r";
-	uint8_t Data1[20] = "Data1 Packet\r";
+	/* Configure the switch as input to wake up the BMS in case of sleep and same will be used
+	 * to show the SOC and SOH on status LEDs*/
+	BMS_Switch_Init();
 
+//	/* Configure the ISL94203 I2C communication to 100KHz */
+//	BMS_ASIC_Init();
+
+	/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
+	RTC_Init();
+
+	/* Get the source for the previous reset of MCU */
+	if(Get_Reset_Source() == SOFTWARE)
+	{
+		BMS_Debug_COM_Write_Data("It is Software Reset...!!!\r",27);
+	}
+	else if (Get_Reset_Source() == WATCHDOG)
+	{
+		BMS_Debug_COM_Write_Data("It is Watchdog Reset...!!!\r",27);
+	}
+
+//	/* Sets the parameters in the ISL94203 to raise the flag and log the same in SD card */
+//	if(BMS_Configure_Parameters() != RESULT_OK)
+//	{
+//		BMS_Configuration_OK = false;
+//	}
+//	else
+//	{
+//		BMS_Configuration_OK = true;
+//	}
+
+//	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
+//	 * the curves we will decide which gain is suitable for which current range(Amperes) */
+//	BMS_Set_Current_Gain(CURRENT_GAIN_5X);
+
+//	/* Read the pack voltage to calculate the battery capacity used/remaining */
+//	BMS_Read_Pack_Voltage();
+//
+//	/* Create the LOG file on SD card by reading the count from log summary file */
+//	BMS_Log_Init();
+//
+//	/* Calculate the battery capacity used and remaining so that same value will be used to estimate
+//	 * next values */
+//	BMS_Estimate_Initial_Capacity();
+//
+//	/* Every time when MCU restarts, set the load check timer value to 1 minute; If MCU is awaken from sleep
+//	 * mode then set this value to 10 seconds; If load is not present for 10 seconds then force BMS to
+//	 * sleep mode again */
+//	Timer_Value = LOW_CONSUMPTION_DELAY_SECONDS;
+
+	while(1)
+	{
+		BMS_Debug_COM_Read_Data(&RecData,1);
+
+		/* This flag will be true after every 40ms(25Hz) in timer application file */
+		if (_25Hz_Flag == true)
+		{
+
+			if(RecData == 'A' && MCU_Power_Mode != REGULAR_POWER_MODE)
+			{
+				Enter_Normal_Mode();
+//				BMS_Debug_COM_Write_Data(Data1, 13);
+			}
+			else if (RecData == 'B' && MCU_Power_Mode != LOW_POWER_MODE)
+			{
+				Enter_LP_Mode();
+//				BMS_Debug_COM_Write_Data(Data, 13);
+			}
+
+			RecData = 0;
+
+//			/* If there is any problem in configuring the parameters in the ISL then we will try it again and again. Once it is done then
+//			 * set BMS_Configuration_OK flag to true */
+//			if(BMS_Configuration_OK == false)
+//			{
+//				if(BMS_Configure_Parameters() == RESULT_OK)
+//				{
+//					BMS_Configuration_OK = true;
+//				}
+//			}
+//
+//			/* Continuously monitor the cells configuration from the ISL. If ISL has gone into factory reset settings then it will give number
+//			 * of cells equal to 3. If number of cells are equal to the value which is configured earlier then write the default parameters again
+//			 * into the ISL EEPROM */
+//			if(BMS_Read_Number_Of_Cells_Configuration() != RESULT_OK)
+//			{
+//				if(BMS_Configure_Parameters() == RESULT_OK)
+//				{
+//					BMS_Configuration_OK = true;
+//				}
+//				else
+//				{
+//					BMS_Configuration_OK = false;
+//				}
+//			}
+//			else
+//			{
+//				BMS_Configuration_OK = true;
+//			}
+//
+//			/* Monitor the SD card's existence in the slot */
+//			SD_Status();
+
+			/* If switch is pressed then start counting the time (40ms is the tick period) */
+			if (BMS_Read_Switch_Status() == PRESSED)
+			{
+				Switch_Press_Time_Count++;
+				/* If switch press count is more than 500ms and less than 2 seconds then make SOC_Flag true to display
+				 * the SOC status on LEDs as soon as switch is released */
+				if (Switch_Press_Time_Count >= SHORT_PERIOD && Switch_Press_Time_Count <= LONG_PEROID)
+				{
+					SOC_Flag = true;
+				}
+				/* If switch press count is more than 2 seconds then make SOH_Flag variable true to display the
+				 * SOH status on LEDs as soon as switch is released */
+				if (Switch_Press_Time_Count >= LONG_PEROID)
+				{
+					SOH_Flag = true;
+					SOC_Flag = false;
+				}
+
+				/* If switch is pressed for more than 5 seconds then debug functionality will be toggled with SOH_SOC
+				 * functionality. It will start displaying the data which is being sent over USART at 1Hz*/
+				if (Switch_Press_Time_Count >= DEBUG_FUNCTION_ENABLE_PERIOD && Switch_Press_Time_Count <= FACTORY_DEFAULT_PEROID)
+				{
+					SOH_Flag = false;
+					SOC_Flag = false;
+					Debug_Mode_Function = true;
+				}
+				/* If external switch is pressed for more than 10 seconds then code is reseted to factory default setting */
+				else if(Switch_Press_Time_Count > FACTORY_DEFAULT_PEROID)
+				{
+					NVIC_SystemReset();
+				}
+				else
+				{
+					Time_Count = 0;
+				}
+			}
+			else
+			{
+				/* If switch is immediately released then reset time count to zero */
+				Switch_Press_Time_Count = 0;
+
+				/* If switch is pressed more than 2 seconds then display only SOH status on LEDs and reset the time
+				 * count which is used to keep LEDs ON for specified time */
+				if(SOH_Flag == true)
+				{
+					SOH_Flag = false;
+					Display_SOH = true;
+					Time_Count = 0;
+				}
+				/* If switch is pressed more than 500ms and less than 2 seconds then display only SOC status on LEDs
+				 * and reset the time count which is used to keep LEDs ON for specified time */
+				if(SOC_Flag == true)
+				{
+					SOC_Flag = false;
+					Display_SOC = true;
+					Time_Count = 0;
+				}
+				/* Toggle the Debug USART and SOH_SOC functionality based on switch press for more than 5 seconds */
+				if(Debug_Mode_Function == true)
+				{
+					Display_SOC = false;
+					Display_SOH = false;
+					Debug_Mode_Function = false;
+					if(Debug_COM_Enable == true)
+					{
+						Debug_COM_Enable = false;
+						BMS_SOH_SOC_LEDs_Init();
+					}
+					else
+					{
+						Debug_COM_Enable = true;
+						BMS_Debug_COM_Init();
+					}
+				}
+			}
+
+//			BMS_Status_Error_LED_Toggle();
+			_25Hz_Flag = false;
+		}
+
+
+		/* 1Hz loop which displays the information on USART. It is used for debugging purpose only
+		 * (inputs are provided as per the test cases) */
+		if(_1Hz_Flag == true)
+		{
+			_1Hz_Flag = false;
+		}
+	}
+}
+
+
+
+/* Section of main while loop where timers are working fine along with the USART */
+/*
+ *
 	while(1)
 	{
 		BMS_Debug_COM_Read_Data(&RecData,1);
@@ -136,16 +337,15 @@ int main(void)
 
 		RecData = 0;
 
-		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
 		{
 			_25Hz_Flag = false;
 		}
-		/* 1Hz loop which displays the information on USART. It is used for debugging purpose only
-		 * (inputs are provided as per the test cases) */
 		if(_1Hz_Flag == true)
 		{
 			_1Hz_Flag = false;
 		}
 	}
-}
+ *
+ *
+ * */
