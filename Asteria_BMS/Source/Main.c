@@ -333,7 +333,7 @@ int main(void)
 					else
 					{
 						Log_Status = true;
-						BMS_Status_Error_LED_Toggle();
+//						BMS_Status_Error_LED_Toggle();
 					}
 				}
 				else
