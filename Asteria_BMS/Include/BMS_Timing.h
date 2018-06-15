@@ -18,7 +18,7 @@
 #define NORMAL_MODE_5_SECONDS								(5*_1_SECONDS)
 #define NORMAL_MODE_10_SECONDS								(2* _5_SECONDS)
 
-#define LOW_POWER_MODE_40ms_PERIOD 							40
+#define LOW_POWER_MODE_40ms_PERIOD 							8
 #define LOW_POWER_MODE_1SEC_PERIOD 							200
 
 #define NORMAL_MODE_500_MILLIS								(_1_SECONDS/2)

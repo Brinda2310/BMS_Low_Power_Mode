@@ -145,7 +145,6 @@ int main(void)
 		 * (inputs are provided as per the test cases) */
 		if(_1Hz_Flag == true)
 		{
-			BMS_Status_Error_LED_Toggle();
 			_1Hz_Flag = false;
 		}
 	}

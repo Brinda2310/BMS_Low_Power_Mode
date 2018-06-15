@@ -32,7 +32,7 @@ void BMS_Timers_Init()
 		Timer_Init(TIMER_2,NORMAL_MODE_40ms_PERIOD);
 
 		/* Timer value set to 1 second */
-		Timer_Init(TIMER_6,NORMAL_MODE_1_SECONDS);
+		Timer_Init(TIMER_6,_1SEC_PERIOD);
 	}
 	else if (MCU_Power_Mode == LOW_POWER_MODE)
 	{
@@ -92,5 +92,6 @@ void TIM2_PeriodElapsedCallback()
 void TIM6_PeriodElapsedCallback(void)
 {
 	Loop_Rate_Log_Counter = Loop_Rate_Counter;
+	BMS_Status_Error_LED_Toggle();
 	Loop_Rate_Counter = 0;
 }
