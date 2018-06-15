@@ -127,8 +127,8 @@ int main(void)
 	 * to show the SOC and SOH on status LEDs*/
 	BMS_Switch_Init();
 
-//	/* Configure the ISL94203 I2C communication to 100KHz */
-//	BMS_ASIC_Init();
+	/* Configure the ISL94203 I2C communication to 100KHz */
+	BMS_ASIC_Init();
 
 	/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
 	RTC_Init();
@@ -143,34 +143,34 @@ int main(void)
 		BMS_Debug_COM_Write_Data("It is Watchdog Reset...!!!\r",27);
 	}
 
-//	/* Sets the parameters in the ISL94203 to raise the flag and log the same in SD card */
-//	if(BMS_Configure_Parameters() != RESULT_OK)
-//	{
-//		BMS_Configuration_OK = false;
-//	}
-//	else
-//	{
-//		BMS_Configuration_OK = true;
-//	}
+	/* Sets the parameters in the ISL94203 to raise the flag and log the same in SD card */
+	if(BMS_Configure_Parameters() != RESULT_OK)
+	{
+		BMS_Configuration_OK = false;
+	}
+	else
+	{
+		BMS_Configuration_OK = true;
+	}
 
-//	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
-//	 * the curves we will decide which gain is suitable for which current range(Amperes) */
-//	BMS_Set_Current_Gain(CURRENT_GAIN_5X);
+	/* Set the current gain in the BMS ASIC register. After having number of iterations and analyzing
+	 * the curves we will decide which gain is suitable for which current range(Amperes) */
+	BMS_Set_Current_Gain(CURRENT_GAIN_5X);
 
-//	/* Read the pack voltage to calculate the battery capacity used/remaining */
-//	BMS_Read_Pack_Voltage();
-//
+	/* Read the pack voltage to calculate the battery capacity used/remaining */
+	BMS_Read_Pack_Voltage();
+
 	/* Create the LOG file on SD card by reading the count from log summary file */
 	BMS_Log_Init();
-//
-//	/* Calculate the battery capacity used and remaining so that same value will be used to estimate
-//	 * next values */
-//	BMS_Estimate_Initial_Capacity();
-//
-//	/* Every time when MCU restarts, set the load check timer value to 1 minute; If MCU is awaken from sleep
-//	 * mode then set this value to 10 seconds; If load is not present for 10 seconds then force BMS to
-//	 * sleep mode again */
-//	Timer_Value = LOW_CONSUMPTION_DELAY_SECONDS;
+
+	/* Calculate the battery capacity used and remaining so that same value will be used to estimate
+	 * next values */
+	BMS_Estimate_Initial_Capacity();
+
+	/* Every time when MCU restarts, set the load check timer value to 1 minute; If MCU is awaken from sleep
+	 * mode then set this value to 10 seconds; If load is not present for 10 seconds then force BMS to
+	 * sleep mode again */
+	Timer_Value = LOW_CONSUMPTION_DELAY_SECONDS;
 
 	while(1)
 	{
@@ -193,35 +193,37 @@ int main(void)
 
 			RecData = 0;
 
-//			/* If there is any problem in configuring the parameters in the ISL then we will try it again and again. Once it is done then
-//			 * set BMS_Configuration_OK flag to true */
-//			if(BMS_Configuration_OK == false)
-//			{
-//				if(BMS_Configure_Parameters() == RESULT_OK)
-//				{
-//					BMS_Configuration_OK = true;
-//				}
-//			}
-//
-//			/* Continuously monitor the cells configuration from the ISL. If ISL has gone into factory reset settings then it will give number
-//			 * of cells equal to 3. If number of cells are equal to the value which is configured earlier then write the default parameters again
-//			 * into the ISL EEPROM */
-//			if(BMS_Read_Number_Of_Cells_Configuration() != RESULT_OK)
-//			{
-//				if(BMS_Configure_Parameters() == RESULT_OK)
-//				{
-//					BMS_Configuration_OK = true;
-//				}
-//				else
-//				{
-//					BMS_Configuration_OK = false;
-//				}
-//			}
-//			else
-//			{
-//				BMS_Configuration_OK = true;
-//			}
+			/* If there is any problem in configuring the parameters in the ISL then we will try it again and again. Once it is done then
+			 * set BMS_Configuration_OK flag to true */
+			if(MCU_Power_Mode == REGULAR_POWER_MODE)
+			{
+			if(BMS_Configuration_OK == false )
+			{
+				if(BMS_Configure_Parameters() == RESULT_OK)
+				{
+					BMS_Configuration_OK = true;
+				}
+			}
 
+			/* Continuously monitor the cells configuration from the ISL. If ISL has gone into factory reset settings then it will give number
+			 * of cells equal to 3. If number of cells are equal to the value which is configured earlier then write the default parameters again
+			 * into the ISL EEPROM */
+			if(BMS_Read_Number_Of_Cells_Configuration() != RESULT_OK)
+			{
+				if(BMS_Configure_Parameters() == RESULT_OK)
+				{
+					BMS_Configuration_OK = true;
+				}
+				else
+				{
+					BMS_Configuration_OK = false;
+				}
+			}
+			else
+			{
+				BMS_Configuration_OK = true;
+			}
+			}
 			/* Monitor the SD card's existence in the slot */
 			SD_Status();
 

@@ -155,6 +155,9 @@ void Enter_Normal_Mode(void)
 
 		BMS_Log_Init();
 
+		/* Configure the ISL94203 I2C communication to 100KHz */
+		BMS_ASIC_Init();
+
 		/* Resume Tick interrupt if disabled prior to Low Power Run mode entry */
 //		HAL_ResumeTick();
 	}
