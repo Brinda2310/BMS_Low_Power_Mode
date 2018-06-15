@@ -22,5 +22,6 @@ uint8_t USART_Init(uint8_t USART_Num,int32_t Baud_Rate);
 uint8_t USART_DeInit(uint8_t USART_Num);
 uint8_t USART_Write(uint8_t USART_Num, void *TxBuffer,uint16_t Size);
 uint8_t USART_Read(uint8_t USART_Num, void *RxBufffer,uint16_t Size);
+void USART_Reset(uint8_t USART_Num);
 
 #endif /* USART_API_H_ */

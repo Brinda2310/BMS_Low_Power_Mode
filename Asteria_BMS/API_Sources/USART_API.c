@@ -243,6 +243,26 @@ uint8_t USART_Read(uint8_t USART_Num, void *RxBufffer,uint16_t Size)
 return Result;
 }
 
+/**
+ * @brief  Function to reset the USART state when switching happens between low power mode and regular mode
+ * @param  USART_Num	: USART Number of specific micro controller [USART_1,USART_2]
+ * @retval None
+ *
+ */
+void USART_Reset(uint8_t USART_Num)
+{
+#ifdef BMS_VERSION
+	if(USART_Num == USART_1)
+	{
+		USARTHandle[USART1_HANDLE_INDEX].Instance->CR1 &= ~USART_CR1_UE;
+	}
+	else if (USART_Num == USART_2)
+	{
+		USARTHandle[USART2_HANDLE_INDEX].Instance->CR1 &= ~USART_CR1_UE;
+	}
+#endif
+
+}
 /*
  *  @brief	USART Handlers for the specific micro controllers can be defined in this section
  *			Here the defined handlers are for stm32l432kc micro controller

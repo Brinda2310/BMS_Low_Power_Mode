@@ -13,17 +13,25 @@
 #include <Hardware_Config.h>
 #include <BMS_Timing.h>
 #include <BMS_GPIOs.h>
+//#include <BMS_Data_Log.h>
 
 /* Variable which becomes true as soon as MCU enters the sleep mode. So that after waking up from
  * sleep it can start from the point where it left off */
 extern volatile bool Wakeup_From_Sleep,Sleep_Mode;
 extern uint8_t Reset_Source;
 extern uint8_t Sleep_Mode_Entered;
+extern uint8_t MCU_Power_Mode;
 
 enum ResetSources
 {
 	SOFTWARE = 0, WATCHDOG, HARDWARE
 };
+
+enum Power_Modes
+{
+	REGULAR_POWER_MODE = 0, LOW_POWER_MODE
+};
+
 void MCU_Sleep_Mode_Init();
 void MCU_Enter_Sleep_Mode();
 void MCU_Exit_Sleep_Mode();

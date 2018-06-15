@@ -10,7 +10,8 @@
 
 #include <USART_API.h>
 
-#define SYSTEM_BUAD_RATE							115200
+#define REGULAR_POWER_MODE_BUAD_RATE							115200
+#define LOW_POWER_MODE_BAUD_RATE								9600
 
 extern bool Debug_COM_Enable;
 

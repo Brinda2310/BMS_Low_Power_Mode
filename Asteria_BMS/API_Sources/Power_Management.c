@@ -11,6 +11,8 @@
 volatile bool Wakeup_From_Sleep = false,Sleep_Mode = false;
 uint8_t Reset_Source = 0xFF;
 
+uint8_t MCU_Power_Mode = REGULAR_POWER_MODE;
+
 uint8_t Sleep_Mode_Entered = false;
 
 void MCU_Enter_Sleep_Mode()
@@ -84,6 +86,108 @@ void MCU_Exit_Sleep_Mode()
 
 #endif
 }
+
+static void SystemPower_Config(void)
+{
+	GPIO_InitTypeDef    GPIO_InitStruct;
+
+	/* Enable Power Clock */
+    __HAL_RCC_PWR_CLK_ENABLE();
+
+	/* Enable GPIOs clock */
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	__HAL_RCC_GPIOH_CLK_ENABLE();
+
+	/* Configure all GPIO port pins in Analog Input mode (floating input trigger OFF) */
+	/* Note: Debug using ST-Link is not possible during the execution of this   */
+	/*       example because communication between ST-link and the device       */
+	/*       under test is done through UART. All GPIO pins are disabled (set   */
+	/*       to analog input mode) including  UART I/O pins.           */
+	GPIO_InitStruct.Pin = GPIO_PIN_All;
+	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+
+	/* Disable GPIOs clock */
+	__HAL_RCC_GPIOB_CLK_DISABLE();
+	__HAL_RCC_GPIOC_CLK_DISABLE();
+	__HAL_RCC_GPIOH_CLK_DISABLE();
+}
+
+void Enter_Normal_Mode(void)
+{
+	if(MCU_Power_Mode != REGULAR_POWER_MODE)
+	{
+		USART_Reset(USART_1);
+
+		/* Check whether regulator is in main mode or low power mode. As soon as
+		 * MCU enters the main mode, regular operation should be initiated */
+		HAL_PWREx_DisableLowPowerRunMode();
+
+		/* Configure the system clock frequency (Peripherals clock) to 80MHz */
+		Set_System_Clock_Frequency();
+
+		/* Delay of 100 milliSeconds is required to make sure BMS is not polled before it's POR cycle otherwise
+		 * BMS I2C will be locked */
+		Delay_Millis(100);
+
+		/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
+		BMS_Timers_Init();
+
+		/* Initialize the status LEDs which indicates the SOC and SOH */
+		if(Debug_COM_Enable == false)
+		{
+			BMS_SOH_SOC_LEDs_Init();
+		}
+		{
+			/* Initialize the USART to 115200 baud rate to debug the code */
+			BMS_Debug_COM_Init();
+		}
+		/* Resume Tick interrupt if disabled prior to Low Power Run mode entry */
+		HAL_ResumeTick();
+	}
+}
+
+void Enter_LP_Mode(void)
+{
+	if(MCU_Power_Mode != LOW_POWER_MODE)
+	{
+//		Stop_Log();
+
+		USART_Reset(USART_1);
+
+		/* Configure the system Power */
+		SystemPower_Config();
+
+		/* Reduce the System clock to below 2 MHz */
+		SystemClock_Decrease();
+
+		/* Suspend Tick increment for power consumption purposes */
+		HAL_SuspendTick();
+
+		/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
+		BMS_Timers_Init();
+
+		/* Initialize the status LEDs which indicates the SOC and SOH */
+		if(Debug_COM_Enable == false)
+		{
+			BMS_SOH_SOC_LEDs_Init();
+		}
+		{
+			/* Initialize the USART to 115200 baud rate to debug the code */
+			BMS_Debug_COM_Init();
+		}
+
+		/* Enter LP RUN Mode */
+		HAL_PWREx_EnableLowPowerRunMode();
+	}
+}
+
 
 void SystemClock_Decrease(void)
 {

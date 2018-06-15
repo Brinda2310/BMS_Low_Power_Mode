@@ -329,7 +329,7 @@ uint8_t Create_BMS_Log_File()
 
 		/* Start filling the header data in buffer and once done write it to the BMS_Log_File */
 		*String_Index += sprintf(String_Buffer,"Asteria BMS %d.%d.%d Log at %d Hz\r\n",BMS_Firmware_Version[0], BMS_Firmware_Version[1],
-				BMS_Firmware_Version[2],(uint8_t)_1_SECONDS);
+				BMS_Firmware_Version[2],(uint8_t)NORMAL_MODE_1_SECONDS);
 
 		*String_Index += sprintf(&String_Buffer[*String_Index], "UTC Start: ");
 

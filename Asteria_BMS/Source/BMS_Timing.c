@@ -26,11 +26,22 @@ uint8_t Loop_Rate_Counter = 0, Loop_Rate_Log_Counter = 0;
  */
 void BMS_Timers_Init()
 {
-	/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
-	Timer_Init(TIMER_2,_40ms_PERIOD);
+	if(MCU_Power_Mode == REGULAR_POWER_MODE)
+	{
+		/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
+		Timer_Init(TIMER_2,NORMAL_MODE_40ms_PERIOD);
 
-	/* Timer value set to 1 second */
-	Timer_Init(TIMER_6,_1SEC_PERIOD);
+		/* Timer value set to 1 second */
+		Timer_Init(TIMER_6,NORMAL_MODE_1_SECONDS);
+	}
+//	else if (MCU_Power_Mode == LOW_POWER_MODE)
+//	{
+//		/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
+//		Timer_Init(TIMER_2,_40ms_PERIOD);
+//
+//		/* Timer value set to 1 second */
+//		Timer_Init(TIMER_6,_1SEC_PERIOD);
+//	}
 }
 
 /**
@@ -66,7 +77,7 @@ void TIM2_PeriodElapsedCallback()
 	Counter++;
 
 	/* Count the 40ms durations to create one second delay and the same flag is used in main loop for 1Hz tasks */
-	if (Counter >= _1_SECONDS)
+	if (Counter >= NORMAL_MODE_1_SECONDS)
 	{
 		_1Hz_Flag = true;
 		Counter = 0;
