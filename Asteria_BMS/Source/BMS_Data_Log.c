@@ -534,11 +534,11 @@ uint8_t Log_All_Data()
 	Char_Values[(*Index_Counter)++] = Sleep_Mode_Entered;
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
-//	while(*String_Index != 1021)
-//	{
-//		String_Buffer[(*String_Index)++] = 'A';
-//	}
-//	String_Buffer[(*String_Index)++] = ',';
+	while(*String_Index != 509)
+	{
+		String_Buffer[(*String_Index)++] = 'A';
+	}
+	String_Buffer[(*String_Index)++] = ',';
 	String_Buffer[(*String_Index)++] = '\r';
 	String_Buffer[(*String_Index)++] = '\n';
 
