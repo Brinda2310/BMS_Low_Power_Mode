@@ -160,8 +160,8 @@ int main(void)
 //	/* Read the pack voltage to calculate the battery capacity used/remaining */
 //	BMS_Read_Pack_Voltage();
 //
-//	/* Create the LOG file on SD card by reading the count from log summary file */
-//	BMS_Log_Init();
+	/* Create the LOG file on SD card by reading the count from log summary file */
+	BMS_Log_Init();
 //
 //	/* Calculate the battery capacity used and remaining so that same value will be used to estimate
 //	 * next values */
@@ -221,9 +221,9 @@ int main(void)
 //			{
 //				BMS_Configuration_OK = true;
 //			}
-//
-//			/* Monitor the SD card's existence in the slot */
-//			SD_Status();
+
+			/* Monitor the SD card's existence in the slot */
+			SD_Status();
 
 			/* If switch is pressed then start counting the time (40ms is the tick period) */
 			if (BMS_Read_Switch_Status() == PRESSED)
@@ -310,6 +310,52 @@ int main(void)
 		 * (inputs are provided as per the test cases) */
 		if(_1Hz_Flag == true)
 		{
+			/* SD card logging will happen only if SD card is present in the slot; This thing will also avoid
+			 * code stuck due to insertion of SD card while running the code */
+			if(SdStatus == SD_PRESENT && MCU_Power_Mode == REGULAR_POWER_MODE)
+			{
+				/* If SD card is not removed from the slot then only start immediate logging */
+				if(SD_Card_ReInit == false)
+				{
+					/* Log all the variable in the SD card */
+					if(Log_All_Data() != RESULT_OK)
+					{
+						/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
+						 * the SD card functionality */
+						Log_Init_Counter++;
+						Log_Status = false;
+						if (Log_Init_Counter >= (_1_SECONDS_TIME/5))
+						{
+							Log_Init_Counter = 0;
+							BMS_Log_Init();
+						}
+					}
+					else
+					{
+						Log_Status = true;
+						BMS_Status_Error_LED_Toggle();
+					}
+				}
+				else
+				{
+					/* As soon as SD card is inserted in the slot, we should initialize the SD card and then start
+					 * logging the data. After initializing the SD card, wait for 1000 milliseconds then start
+					 * logging to avoid problem in the logging */
+					static uint8_t Counter = 0;
+					if(Counter++ >= _1_SECONDS_TIME)
+					{
+						BMS_Log_Init();
+						SD_Card_ReInit = false;
+						Counter = 0;
+					}
+				}
+			}
+			else if(SdStatus == SD_NOT_PRESENT)
+			{
+				Log_Status = false;
+				SD_Card_ReInit = true;
+			}
+
 			_1Hz_Flag = false;
 		}
 	}
