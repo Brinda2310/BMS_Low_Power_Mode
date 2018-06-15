@@ -49,7 +49,7 @@
 #define SD_CARD_DETECT									GPIO_PIN_1
 
 /********************************************* Timer Related Macros ****************************************************/
-#define _10KHZ_PRESCALAR								499
+#define _10KHZ_PRESCALAR								199
 
 #if PWM_FUNCTION == ENABLE
 #define TIM1_PWM_PRESCALAR								1000000

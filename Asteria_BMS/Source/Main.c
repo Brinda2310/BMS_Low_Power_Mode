@@ -99,7 +99,7 @@ uint8_t Critical_Batt_V_Counter = 0;
 int main(void)
 {
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
-	HAL_Init();
+//	HAL_Init();
 
 	/* Configure the system clock frequency (Peripherals clock) to 80MHz */
 	Set_System_Clock_Frequency();

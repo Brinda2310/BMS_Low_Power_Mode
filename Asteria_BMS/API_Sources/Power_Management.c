@@ -152,8 +152,11 @@ void Enter_Normal_Mode(void)
 			/* Initialize the USART to 115200 baud rate to debug the code */
 			BMS_Debug_COM_Init();
 		}
+
+		BMS_Log_Init();
+
 		/* Resume Tick interrupt if disabled prior to Low Power Run mode entry */
-		HAL_ResumeTick();
+//		HAL_ResumeTick();
 	}
 }
 
@@ -174,7 +177,7 @@ void Enter_LP_Mode(void)
 		SystemClock_Decrease();
 
 		/* Suspend Tick increment for power consumption purposes */
-		HAL_SuspendTick();
+//		HAL_SuspendTick();
 
 		/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
 		BMS_Timers_Init();
@@ -202,7 +205,7 @@ void SystemClock_Decrease(void)
 	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
 
 	/* MSI = 1MHz for low power mode of MCU */
-	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_4;
+	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_1;
 	RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
 	HAL_RCC_OscConfig(&RCC_OscInitStruct);
@@ -230,13 +233,13 @@ void Set_System_Clock_Frequency(void)
 	/* MSI is enabled after System reset, activate PLL with MSI as source */
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
 	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
+	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_5;
 	RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
 	/* The peripheral frequency is set to Frequency = ((RCC_MSI_RANGE * PLLN)/PLLR) */
 	RCC_OscInitStruct.PLL.PLLM = 1;
-	RCC_OscInitStruct.PLL.PLLN = 10;
+	RCC_OscInitStruct.PLL.PLLN = 8;
 	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV8;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
 	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;
