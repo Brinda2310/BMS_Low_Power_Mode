@@ -335,36 +335,39 @@ int main(void)
 				}
 			}
 
-			/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
-			 * all status flags and calculate the battery capacity used */
-			BMS_Read_Cell_Voltages();
-			BMS_Read_Pack_Voltage();
-			BMS_Read_Pack_Current();
-			BMS_Read_Pack_Temperature();
-			BMS_Read_RAM_Status_Register();
-			BMS_Estimate_Capacity_Used();
-
-			if(((uint16_t)Get_BMS_Pack_Current_Adj() <= MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)
+			if(MCU_Power_Mode == REGULAR_POWER_MODE)
 			{
-				BMS_Sleep_Time_Count++;
+				/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
+				 * all status flags and calculate the battery capacity used */
+				BMS_Read_Cell_Voltages();
+				BMS_Read_Pack_Voltage();
+				BMS_Read_Pack_Current();
+				BMS_Read_Pack_Temperature();
+				BMS_Read_RAM_Status_Register();
+				BMS_Estimate_Capacity_Used();
 
-				/* If MCU is awaken by external switch or load then check the load only for 10 seconds.
-				 * If load is not present for continuous 10 seconds then force BMS IC again to sleep mode
-				 * and if load is present then check the presence of load for continuous 1 minute */
-				if(BMS_Sleep_Time_Count >= Timer_Value)
+				if(((uint16_t)Get_BMS_Pack_Current_Adj() <= MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)
 				{
-					BMS_Sleep_Time_Count = 0;
-					/* Set the corresponding flag in BMS IC to force it to sleep mode */
-					BMS_Force_Sleep();
+					BMS_Sleep_Time_Count++;
+
+					/* If MCU is awaken by external switch or load then check the load only for 10 seconds.
+					 * If load is not present for continuous 10 seconds then force BMS IC again to sleep mode
+					 * and if load is present then check the presence of load for continuous 1 minute */
+					if(BMS_Sleep_Time_Count >= Timer_Value)
+					{
+						BMS_Sleep_Time_Count = 0;
+						/* Set the corresponding flag in BMS IC to force it to sleep mode */
+						BMS_Force_Sleep();
+					}
 				}
-			}
-			/* If some load is present then always clear the timer counts to zero */
-			else if (((uint16_t)Get_BMS_Pack_Current_Adj() > MINIMUM_CURRENT_CONSUMPTION))
-			{
-			   /* If BMS consumes more than 200mA in between then reset the time count to zero */
-				BMS_Sleep_Time_Count = 0;
-				/* If load is present then change the timer check value for sleep to 1 minute */
-				Timer_Value = LOW_CONSUMPTION_DELAY_SECONDS;
+				/* If some load is present then always clear the timer counts to zero */
+				else if (((uint16_t)Get_BMS_Pack_Current_Adj() > MINIMUM_CURRENT_CONSUMPTION))
+				{
+					/* If BMS consumes more than 200mA in between then reset the time count to zero */
+					BMS_Sleep_Time_Count = 0;
+					/* If load is present then change the timer check value for sleep to 1 minute */
+					Timer_Value = LOW_CONSUMPTION_DELAY_SECONDS;
+				}
 			}
 
 			/* If BMS IC is forced to sleep mode then start counting the timer value; If BMS IC goes to
@@ -448,7 +451,7 @@ int main(void)
 				/* If status of the BMS is discharging then keep continuous track of it */
 				else if (Get_BMS_Charge_Discharge_Status() == DISCHARGING)
 #endif
-					{
+				{
 					/* Make the count used for charging to zero to get the exact duration of 5mins while
 					 * executing the charging section of the code */
 					Charge_Time_Count = 0;
@@ -500,7 +503,7 @@ int main(void)
 
 				/* If any time there is problem in querying the data from ISL94203 then restart the
 				 * I2C communication with ISL94203 */
-				if(BMS_Check_COM_Health() != HEALTH_OK)
+				if(BMS_Check_COM_Health() != HEALTH_OK && MCU_Power_Mode == REGULAR_POWER_MODE)
 				{
 					BMS_ASIC_Init();
 					/* Variable to log the number of time ISL restarted during its operation */
