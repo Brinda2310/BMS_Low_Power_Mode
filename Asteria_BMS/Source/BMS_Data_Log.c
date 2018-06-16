@@ -6,6 +6,10 @@
  */
 
 #include <BMS_Data_Log.h>
+#include <BMS_Timing.h>
+#include <BMS_Watchdog.h>
+#include <AP_Communication.h>
+#include <BMS_Serial_Communication.h>
 
 /* Global variables for FATFS file operations */
 FATFS FatFs;
@@ -436,10 +440,10 @@ uint8_t Log_All_Data()
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
 
-	RTC_Data_Size = RTC_TimeShow(&String_Buffer[*String_Index],DATE);
+	RTC_Data_Size = RTC_TimeShow((uint8_t*)&String_Buffer[*String_Index],DATE);
 	*String_Index += RTC_Data_Size;
 
-	RTC_Data_Size = RTC_TimeShow(&String_Buffer[*String_Index],TIME);
+	RTC_Data_Size = RTC_TimeShow((uint8_t*)&String_Buffer[*String_Index],TIME);
 	*String_Index += RTC_Data_Size;
 
 	Long_Values[(*Index_Counter)++] = Get_System_Time_Millis();								// Start Time

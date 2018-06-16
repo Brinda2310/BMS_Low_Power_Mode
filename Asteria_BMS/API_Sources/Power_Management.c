@@ -5,6 +5,11 @@
  *      Author: NIKHIL
  */
 #include <Power_Management.h>
+#include <BMS_Data_Log.h>
+#include <BMS_GPIOs.h>
+#include <BMS_ASIC.h>
+#include <BMS_Serial_Communication.h>
+#include <BMS_Timing.h>
 
 /* Variable which becomes true only when MCU wake up from sleep mode either from Vref pin or
  * from external switch press */

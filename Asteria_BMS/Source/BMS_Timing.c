@@ -77,7 +77,7 @@ void TIM2_PeriodElapsedCallback()
 	Counter++;
 
 	/* Count the 40ms durations to create one second delay and the same flag is used in main loop for 1Hz tasks */
-	if (Counter >= NORMAL_MODE_5_SECONDS)
+	if (Counter >= NORMAL_MODE_1_SECONDS)
 	{
 		_1Hz_Flag = true;
 		Counter = 0;

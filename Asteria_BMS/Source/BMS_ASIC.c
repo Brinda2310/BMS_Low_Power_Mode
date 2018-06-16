@@ -7,6 +7,7 @@
 
 #include <BMS_ASIC.h>
 #include <BMS_Timing.h>
+#include <BMS_Serial_Communication.h>
 
 /* Battery Parameters */
 const uint8_t Battery_ID[] = "AA/BATT/001";

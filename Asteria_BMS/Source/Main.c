@@ -172,6 +172,8 @@ int main(void)
 	 * sleep mode again */
 	Timer_Value = LOW_CONSUMPTION_DELAY_SECONDS;
 
+	uint8_t Data[20] = "HelloBytes\r";
+
 	while(1)
 	{
 		BMS_Debug_COM_Read_Data(&RecData,1);
@@ -182,8 +184,8 @@ int main(void)
 
 			if(RecData == 'A' && MCU_Power_Mode != REGULAR_POWER_MODE)
 			{
+//				BMS_Debug_COM_Write_Data(Data, 11);
 				Enter_Normal_Mode();
-//				BMS_Debug_COM_Write_Data(Data1, 13);
 			}
 			else if (RecData == 'B' && MCU_Power_Mode != LOW_POWER_MODE)
 			{
@@ -197,32 +199,32 @@ int main(void)
 			 * set BMS_Configuration_OK flag to true */
 			if(MCU_Power_Mode == REGULAR_POWER_MODE)
 			{
-			if(BMS_Configuration_OK == false )
-			{
-				if(BMS_Configure_Parameters() == RESULT_OK)
+				if(BMS_Configuration_OK == false )
 				{
-					BMS_Configuration_OK = true;
+					if(BMS_Configure_Parameters() == RESULT_OK)
+					{
+						BMS_Configuration_OK = true;
+					}
 				}
-			}
 
-			/* Continuously monitor the cells configuration from the ISL. If ISL has gone into factory reset settings then it will give number
-			 * of cells equal to 3. If number of cells are equal to the value which is configured earlier then write the default parameters again
-			 * into the ISL EEPROM */
-			if(BMS_Read_Number_Of_Cells_Configuration() != RESULT_OK)
-			{
-				if(BMS_Configure_Parameters() == RESULT_OK)
+				/* Continuously monitor the cells configuration from the ISL. If ISL has gone into factory reset settings then it will give number
+				 * of cells equal to 3. If number of cells are equal to the value which is configured earlier then write the default parameters again
+				 * into the ISL EEPROM */
+				if(BMS_Read_Number_Of_Cells_Configuration() != RESULT_OK)
 				{
-					BMS_Configuration_OK = true;
+					if(BMS_Configure_Parameters() == RESULT_OK)
+					{
+						BMS_Configuration_OK = true;
+					}
+					else
+					{
+						BMS_Configuration_OK = false;
+					}
 				}
 				else
 				{
-					BMS_Configuration_OK = false;
+					BMS_Configuration_OK = true;
 				}
-			}
-			else
-			{
-				BMS_Configuration_OK = true;
-			}
 			}
 			/* Monitor the SD card's existence in the slot */
 			SD_Status();
@@ -302,6 +304,283 @@ int main(void)
 					}
 				}
 			}
+			/* If switch is pressed for more than 500ms and less than 2 seconds then show the SOC status on LEDs*/
+			if(Display_SOC == true)
+			{
+				if(Time_Count <= _2_SECONDS_TIME)
+				{
+					Time_Count++;
+					BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
+				}
+				else
+				{
+					Display_SOC = false;
+					Time_Count = 0;
+					BMS_Show_LED_Pattern(SOC,HIDE_STATUS);
+				}
+			}
+			/* If switch is pressed for more than 2 seconds and less than 5 seconds then show the SOH status on LEDs*/
+			else if (Display_SOH == true)
+			{
+				if (Time_Count <= _2_SECONDS_TIME)
+				{
+					Time_Count++;
+					BMS_Show_LED_Pattern(SOH, SHOW_STATUS);
+				}
+				else
+				{
+					Display_SOH = false;
+					Time_Count = 0;
+					BMS_Show_LED_Pattern(SOH, HIDE_STATUS);
+				}
+			}
+
+			/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
+			 * all status flags and calculate the battery capacity used */
+			BMS_Read_Cell_Voltages();
+			BMS_Read_Pack_Voltage();
+			BMS_Read_Pack_Current();
+			BMS_Read_Pack_Temperature();
+			BMS_Read_RAM_Status_Register();
+			BMS_Estimate_Capacity_Used();
+
+			if(((uint16_t)Get_BMS_Pack_Current_Adj() <= MINIMUM_CURRENT_CONSUMPTION) && Status_Flag.BMS_In_Sleep == NO)
+			{
+				BMS_Sleep_Time_Count++;
+
+				/* If MCU is awaken by external switch or load then check the load only for 10 seconds.
+				 * If load is not present for continuous 10 seconds then force BMS IC again to sleep mode
+				 * and if load is present then check the presence of load for continuous 1 minute */
+				if(BMS_Sleep_Time_Count >= Timer_Value)
+				{
+					BMS_Sleep_Time_Count = 0;
+					/* Set the corresponding flag in BMS IC to force it to sleep mode */
+					BMS_Force_Sleep();
+				}
+			}
+			/* If some load is present then always clear the timer counts to zero */
+			else if (((uint16_t)Get_BMS_Pack_Current_Adj() > MINIMUM_CURRENT_CONSUMPTION))
+			{
+			   /* If BMS consumes more than 200mA in between then reset the time count to zero */
+				BMS_Sleep_Time_Count = 0;
+				/* If load is present then change the timer check value for sleep to 1 minute */
+				Timer_Value = LOW_CONSUMPTION_DELAY_SECONDS;
+			}
+
+			/* If BMS IC is forced to sleep mode then start counting the timer value; If BMS IC goes to
+			 * sleep mode immediately after wake up then MCU will go to sleep after 5 seconds */
+			if(Status_Flag.BMS_In_Sleep == YES)
+			{
+				MCU_Sleep_Time_Count++;
+				/* When BMS IC goes to sleep then MCU also goes to sleep mode after 5 Seconds */
+				if(MCU_Sleep_Time_Count >= MCU_GO_TO_SLEEP_DELAY)
+				{
+					MCU_Sleep_Time_Count = 0;
+					/* This flag makes sure that controller is wake up from sleep mode only */
+					Sleep_Mode = true;
+					/* Debug code to be removed after testing is completed */
+					BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
+					/* Configures the external trigger events which will wake up the MCU and then goes to
+					 * sleep mode */
+//					MCU_Enter_Sleep_Mode();
+				}
+			}
+			/* If BMS IC is not in sleep mode then always reset the timer count to zero so as to get
+			 * exact timer value for next iterations */
+			else
+			{
+				MCU_Sleep_Time_Count = 0;
+				BMS_Sleep_Time_Count = 0;
+			}
+
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+				if(Get_BMS_Charge_Discharge_Status() == CHARGING || Start_Charging == true)
+#else
+				/* If external charger is connected to the BMS then keep continuous track of it */
+				if(Get_BMS_Charge_Discharge_Status() == CHARGING)
+#endif
+				{
+					/* Make the count used for charging to zero to get the exact duration of 5mins while
+					 * executing the discharge section of the code */
+					Discharge_Time_Count = 0;
+
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+					Charge_Time_Count++;
+#else
+					/* If current coming into the pack is more than 1A then start counting the time */
+					if(Get_BMS_Pack_Current_Adj() > CHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
+					{
+						Charge_Time_Count++;
+					}
+					else
+					{
+						/* BMS is charging but with value less than mentioned(1A) current then reset the charge timer
+						 * count to zero */
+						Charge_Time_Count = 0;
+					}
+#endif
+					/* If current coming into the pack is more than 1A for more than 5mins(CHARGE_TIME_DELAY),then increment
+					 * the charge cycles count only if previous pack cycle was discharging and make the last_charge_discharge_status
+					 * variable to charging to keep track of last state of the pack i.e. charging/discharging */
+					if(Charge_Time_Count >= CHARGE_TIME_DELAY)
+					{
+						/* At very first when battery is connected to the BMS we do not know the last charge and discharge status
+						 * So change the status to charging if current is more than 1A for continuous 5 minutes */
+						if(Last_Charge_Disharge_Status == LOW_POWER_CONSUMPTION)
+						{
+							Last_Charge_Disharge_Status = CHARGING;
+						}
+						else if(Last_Charge_Disharge_Status == DISCHARGING)
+						{
+							BMS_Data.Pack_Charge_Cycles++;
+							Update_Pack_Cycles = true;
+							Last_Charge_Disharge_Status = CHARGING;
+							BMS_Update_Pack_Cycles();
+						}
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+						Charge_Time_Count = 0;
+#endif
+					}
+				}
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+				else if (Get_BMS_Charge_Discharge_Status() == DISCHARGING || Start_Discharging == true)
+#else
+				/* If status of the BMS is discharging then keep continuous track of it */
+				else if (Get_BMS_Charge_Discharge_Status() == DISCHARGING)
+#endif
+					{
+					/* Make the count used for charging to zero to get the exact duration of 5mins while
+					 * executing the charging section of the code */
+					Charge_Time_Count = 0;
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+					Discharge_Time_Count++;
+#else
+					/* If current going out of the pack is more than 1 amperes then start counting the time */
+					if(Get_BMS_Pack_Current_Adj() > DISCHARGE_CURRENT_CONSUMPTION && Update_Pack_Cycles == false)
+					{
+						Discharge_Time_Count++;
+					}
+					else
+					{
+						Discharge_Time_Count = 0;
+					}
+#endif
+					/* If discharge current is more than 1A for more than 5 minutes then increment the discharge
+					 * cycles count only if previous pack cycle was charging and make the last_charge_discharge_status
+					 * variable to discharging to keep track of last state of the pack i.e. charging/discharging */
+					if(Discharge_Time_Count >= DISCHARGE_TIME_DELAY)
+					{
+						/* At very first when battery is connected to the BMS we do not know the last charge and discharge status
+						 * So change the status to discharging if current is more than 1A for continuous 5 minutes */
+						if(Last_Charge_Disharge_Status == LOW_POWER_CONSUMPTION)
+						{
+							Last_Charge_Disharge_Status = DISCHARGING;
+						}
+						else if (Last_Charge_Disharge_Status == CHARGING)
+						{
+							BMS_Data.Pack_Discharge_Cycles++;
+							Update_Pack_Cycles = true;
+							Last_Charge_Disharge_Status = DISCHARGING;
+							BMS_Update_Pack_Cycles();
+						}
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+						Discharge_Time_Count = 0;
+#endif
+					}
+
+				}
+				else
+				{
+					/* If BMS is in low power consumption mode then clear all the timer counts and
+					 * do not update any cycles(C/D) count */
+					Charge_Time_Count = 0;
+					Discharge_Time_Count = 0;
+					Update_Pack_Cycles = false;
+				}
+
+				/* If any time there is problem in querying the data from ISL94203 then restart the
+				 * I2C communication with ISL94203 */
+				if(BMS_Check_COM_Health() != HEALTH_OK)
+				{
+					BMS_ASIC_Init();
+					/* Variable to log the number of time ISL restarted during its operation */
+					ASIC_Restart_Count++;
+				}
+
+				/* Variable to log the loop rate */
+				Loop_Rate_Counter++;
+
+				/* Reload the watchdog timer value to avoid resetting of code */
+				BMS_Watchdog_Refresh();
+
+				if(RecData == 'S')
+				{
+					BMS_Data.Pack_Voltage = 19.8;
+				}
+
+				if(MCU_Power_Mode == REGULAR_POWER_MODE)
+				{
+					if(BMS_Check_Critical_Voltage() == BATT_CRITICAL_LEVEL_REACHED)
+					{
+						if(Critical_Batt_V_Counter++ >= 10)
+						{
+							BMS_Debug_COM_Write_Data("Sleep Mode\r",11);
+							Sleep_Mode_Entered = true;
+							Log_All_Data();
+							Delay_Millis(10);
+							MCU_Enter_Sleep_Mode();
+						}
+					}
+					else
+					{
+						Critical_Batt_V_Counter = 0;
+					}
+				}
+				/* SD card logging will happen only if SD card is present in the slot; This thing will also avoid
+				 * code stuck due to insertion of SD card while running the code */
+				if(SdStatus == SD_PRESENT && MCU_Power_Mode == REGULAR_POWER_MODE)
+				{
+					/* If SD card is not removed from the slot then only start immediate logging */
+					if(SD_Card_ReInit == false)
+					{
+						/* Log all the variable in the SD card */
+						if(Log_All_Data() != RESULT_OK)
+						{
+							/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
+							 * the SD card functionality */
+							Log_Init_Counter++;
+							Log_Status = false;
+							if (Log_Init_Counter >= (_1_SECONDS_TIME/5))
+							{
+								Log_Init_Counter = 0;
+								BMS_Log_Init();
+							}
+						}
+						else
+						{
+							Log_Status = true;
+	//						BMS_Status_Error_LED_Toggle();
+						}
+					}
+					else
+					{
+						/* As soon as SD card is inserted in the slot, we should initialize the SD card and then start
+						 * logging the data. After initializing the SD card, wait for 1000 milliseconds then start
+						 * logging to avoid problem in the logging */
+						static uint8_t Counter = 0;
+						if(Counter++ >= _1_SECONDS_TIME)
+						{
+							BMS_Log_Init();
+							SD_Card_ReInit = false;
+							Counter = 0;
+						}
+					}
+				}
+				else if(SdStatus == SD_NOT_PRESENT)
+				{
+					Log_Status = false;
+					SD_Card_ReInit = true;
+				}
 
 //			BMS_Status_Error_LED_Toggle();
 			_25Hz_Flag = false;
@@ -312,51 +591,15 @@ int main(void)
 		 * (inputs are provided as per the test cases) */
 		if(_1Hz_Flag == true)
 		{
-			/* SD card logging will happen only if SD card is present in the slot; This thing will also avoid
-			 * code stuck due to insertion of SD card while running the code */
-			if(SdStatus == SD_PRESENT && MCU_Power_Mode == REGULAR_POWER_MODE)
-			{
-				/* If SD card is not removed from the slot then only start immediate logging */
-				if(SD_Card_ReInit == false)
-				{
-					/* Log all the variable in the SD card */
-					if(Log_All_Data() != RESULT_OK)
-					{
-						/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
-						 * the SD card functionality */
-						Log_Init_Counter++;
-						Log_Status = false;
-						if (Log_Init_Counter >= (_1_SECONDS_TIME/5))
-						{
-							Log_Init_Counter = 0;
-							BMS_Log_Init();
-						}
-					}
-					else
-					{
-						Log_Status = true;
-//						BMS_Status_Error_LED_Toggle();
-					}
-				}
-				else
-				{
-					/* As soon as SD card is inserted in the slot, we should initialize the SD card and then start
-					 * logging the data. After initializing the SD card, wait for 1000 milliseconds then start
-					 * logging to avoid problem in the logging */
-					static uint8_t Counter = 0;
-					if(Counter++ >= _1_SECONDS_TIME)
-					{
-						BMS_Log_Init();
-						SD_Card_ReInit = false;
-						Counter = 0;
-					}
-				}
-			}
-			else if(SdStatus == SD_NOT_PRESENT)
-			{
-				Log_Status = false;
-				SD_Card_ReInit = true;
-			}
+//			memset(Buffer,0,sizeof(Buffer));
+//			uint8_t Length = 0;
+//
+//			Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
+//			Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
+//			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+//			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
+//
+//			BMS_Debug_COM_Write_Data(Buffer, Length);
 
 			_1Hz_Flag = false;
 		}
