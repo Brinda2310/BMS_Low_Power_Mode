@@ -114,11 +114,13 @@ static void SystemPower_Config(void)
 	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
 	/* Disable GPIOs clock */
+	__HAL_RCC_GPIOA_CLK_DISABLE();
 	__HAL_RCC_GPIOB_CLK_DISABLE();
 	__HAL_RCC_GPIOC_CLK_DISABLE();
 	__HAL_RCC_GPIOH_CLK_DISABLE();
@@ -174,6 +176,8 @@ void Enter_LP_Mode(void)
 	{
 		_25Hz_Flag = false;
 
+		Stop_Log();
+
 		MCU_Power_Mode = LOW_POWER_MODE;
 
 		USART_Reset(USART_1);
@@ -191,7 +195,7 @@ void Enter_LP_Mode(void)
 		BMS_Timers_Init();
 
 		/* Initialize the status LEDs which indicates the SOC and SOH */
-		BMS_SOH_SOC_LEDs_Init();
+//		BMS_SOH_SOC_LEDs_Init();
 
 		/* Initialize the USART to 115200 baud rate to debug the code */
 		BMS_Debug_COM_Init();

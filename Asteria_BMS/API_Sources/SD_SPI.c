@@ -813,6 +813,17 @@ void SD_IO_Init(void)
   }
 }
 
+void SD_DeInit(void)
+{
+  /* SD chip select high */
+  SD_Deselect();
+
+  GPIO_DeInit(GPIO_A,SD_CARD_CS);
+  GPIO_DeInit(GPIO_B,SD_CARD_DETECT);
+
+  SPI_DeInit(SPI_1);
+}
+
 void SD_IO_CSState(uint8_t val)
 {
   if(val == 1)

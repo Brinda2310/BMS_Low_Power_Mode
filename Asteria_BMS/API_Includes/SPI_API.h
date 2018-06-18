@@ -31,6 +31,7 @@ enum SPI_Prescalars
 };
 
 void SPI_Init(uint8_t SPI_Num,uint8_t Prescalar,uint8_t SPI_Mode);
+void SPI_DeInit(uint8_t SPI_Num);
 void SPI_Transmit(uint8_t *TxData,uint8_t *RxData,uint16_t Size);
 uint8_t SPI_Transmit_Byte(uint8_t Data);
 

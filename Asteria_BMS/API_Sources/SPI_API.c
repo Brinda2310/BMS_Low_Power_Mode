@@ -101,6 +101,20 @@ void SPI_Init(uint8_t SPI_Num,uint8_t Prescalar,uint8_t SPI_Mode)
 #endif
 }
 
+void SPI_DeInit(uint8_t SPI_Num)
+{
+#ifdef BMS_VERSION
+	if(SPI_Num == SPI_1)
+	{
+		__HAL_RCC_SPI1_FORCE_RESET();
+		__HAL_RCC_SPI1_RELEASE_RESET();
+
+		HAL_GPIO_DeInit(GPIOA, SPI1_CLK);
+		HAL_GPIO_DeInit(GPIOA, SPI1_MOSI);
+		HAL_GPIO_DeInit(GPIOA, SPI1_MISO);
+	}
+#endif
+}
 
 void SPI_Transmit(uint8_t *TxData,uint8_t *RxData,uint16_t Size)
 {

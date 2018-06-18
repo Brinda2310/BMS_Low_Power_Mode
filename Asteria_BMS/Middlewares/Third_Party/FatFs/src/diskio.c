@@ -69,6 +69,11 @@ DSTATUS disk_initialize (
 	return Stat;
 }
 
+void disk_deinitialize (BYTE pdrv)
+{
+	SD_DeInit();
+}
+
 DSTATUS disk_status (
 	BYTE pdrv		/* Physical drive number to identify the drive */
 )
