@@ -99,7 +99,7 @@ uint8_t Critical_Batt_V_Counter = 0;
 int main(void)
 {
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
-//	HAL_Init();
+	HAL_Init();
 
 	/* Configure the system clock frequency (Peripherals clock) to 80MHz */
 	Set_System_Clock_Frequency();
@@ -539,51 +539,51 @@ int main(void)
 						Critical_Batt_V_Counter = 0;
 					}
 				}
-				/* SD card logging will happen only if SD card is present in the slot; This thing will also avoid
-				 * code stuck due to insertion of SD card while running the code */
-				if(SdStatus == SD_PRESENT && MCU_Power_Mode == REGULAR_POWER_MODE)
-				{
-					/* If SD card is not removed from the slot then only start immediate logging */
-					if(SD_Card_ReInit == false)
-					{
-						/* Log all the variable in the SD card */
-						if(Log_All_Data() != RESULT_OK)
-						{
-							/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
-							 * the SD card functionality */
-							Log_Init_Counter++;
-							Log_Status = false;
-							if (Log_Init_Counter >= (_1_SECONDS_TIME/5))
-							{
-								Log_Init_Counter = 0;
-								BMS_Log_Init();
-							}
-						}
-						else
-						{
-							Log_Status = true;
-	//						BMS_Status_Error_LED_Toggle();
-						}
-					}
-					else
-					{
-						/* As soon as SD card is inserted in the slot, we should initialize the SD card and then start
-						 * logging the data. After initializing the SD card, wait for 1000 milliseconds then start
-						 * logging to avoid problem in the logging */
-						static uint8_t Counter = 0;
-						if(Counter++ >= _1_SECONDS_TIME)
-						{
-							BMS_Log_Init();
-							SD_Card_ReInit = false;
-							Counter = 0;
-						}
-					}
-				}
-				else if(SdStatus == SD_NOT_PRESENT)
-				{
-					Log_Status = false;
-					SD_Card_ReInit = true;
-				}
+//				/* SD card logging will happen only if SD card is present in the slot; This thing will also avoid
+//				 * code stuck due to insertion of SD card while running the code */
+//				if(SdStatus == SD_PRESENT && MCU_Power_Mode == REGULAR_POWER_MODE)
+//				{
+//					/* If SD card is not removed from the slot then only start immediate logging */
+//					if(SD_Card_ReInit == false)
+//					{
+//						/* Log all the variable in the SD card */
+//						if(Log_All_Data() != RESULT_OK)
+//						{
+//							/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
+//							 * the SD card functionality */
+//							Log_Init_Counter++;
+//							Log_Status = false;
+//							if (Log_Init_Counter >= (_1_SECONDS_TIME/5))
+//							{
+//								Log_Init_Counter = 0;
+//								BMS_Log_Init();
+//							}
+//						}
+//						else
+//						{
+//							Log_Status = true;
+//	//						BMS_Status_Error_LED_Toggle();
+//						}
+//					}
+//					else
+//					{
+//						/* As soon as SD card is inserted in the slot, we should initialize the SD card and then start
+//						 * logging the data. After initializing the SD card, wait for 1000 milliseconds then start
+//						 * logging to avoid problem in the logging */
+//						static uint8_t Counter = 0;
+//						if(Counter++ >= _1_SECONDS_TIME)
+//						{
+//							BMS_Log_Init();
+//							SD_Card_ReInit = false;
+//							Counter = 0;
+//						}
+//					}
+//				}
+//				else if(SdStatus == SD_NOT_PRESENT)
+//				{
+//					Log_Status = false;
+//					SD_Card_ReInit = true;
+//				}
 
 //			BMS_Status_Error_LED_Toggle();
 			_25Hz_Flag = false;
