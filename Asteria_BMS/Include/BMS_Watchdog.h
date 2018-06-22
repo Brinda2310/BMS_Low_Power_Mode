@@ -11,6 +11,8 @@
 #include <IWDG_API.h>
 
 #define _2_SECONDS_WDG			2
+#define _3_SECONDS_WDG			3
+#define _5_SECONDS_WDG			5
 
 extern bool BMS_Watchdog_Enable;
 

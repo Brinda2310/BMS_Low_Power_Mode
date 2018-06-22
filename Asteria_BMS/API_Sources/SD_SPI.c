@@ -49,6 +49,7 @@ typedef struct {
 #define SD_CSD_STRUCT_V1          0x2    /* CSD struct version V1 */
 #define SD_CSD_STRUCT_V2          0x1    /* CSD struct version V2 */
 
+#define SD_TIMEOUT_VALUE			 0xFFF
 
 typedef enum {
  SD_ANSWER_R1_EXPECTED,
@@ -151,7 +152,7 @@ uint8_t SD_Init(void)
   SD_Status();
 
   /* SD initialized and set to SPI mode properly */
-  SPI_Init(SPI_1,DIVIDE_4,SPI_MASTER);
+  SPI_Init(SPI_1,DIVIDE_2,SPI_MASTER);
   return SD_GoIdleState();
 }
 
@@ -563,6 +564,8 @@ uint8_t SD_GetCIDRegister(SD_CID* Cid)
 
 SD_CmdAnswer_typedef SD_SendCmd(uint8_t Cmd, uint32_t Arg, uint8_t Crc, uint8_t Answer)
 {
+  uint16_t Timeout = SD_TIMEOUT_VALUE;
+
   uint8_t frame[SD_CMD_LENGTH], frameout[SD_CMD_LENGTH];
   SD_CmdAnswer_typedef retr = {0xFF, 0xFF , 0xFF, 0xFF, 0xFF};
 
@@ -597,7 +600,7 @@ SD_CmdAnswer_typedef SD_SendCmd(uint8_t Cmd, uint32_t Arg, uint8_t Crc, uint8_t 
     SD_Select();
 
     /* Wait IO line return 0xFF */
-    while (SPI_Transmit_Byte(SD_DUMMY_BYTE) != 0xFF);
+    while (SPI_Transmit_Byte(SD_DUMMY_BYTE) != 0xFF && (--Timeout > 1));
     break;
   case SD_ANSWER_R2_EXPECTED :
     retr.r1 = SD_ReadData();
@@ -619,6 +622,7 @@ SD_CmdAnswer_typedef SD_SendCmd(uint8_t Cmd, uint32_t Arg, uint8_t Crc, uint8_t 
 
 uint8_t SD_GetDataResponse(void)
 {
+  uint16_t Timeout = SD_TIMEOUT_VALUE;
   uint8_t dataresponse;
   uint8_t rvalue = SD_DATA_OTHER_ERROR;
 
@@ -637,7 +641,7 @@ uint8_t SD_GetDataResponse(void)
     SD_Select();
 
     /* Wait IO line return 0xFF */
-    while (SPI_Transmit_Byte(SD_DUMMY_BYTE) != 0xFF);
+    while (SPI_Transmit_Byte(SD_DUMMY_BYTE) != 0xFF && (--Timeout > 1));
     break;
   case SD_DATA_CRC_ERROR:
     rvalue =  SD_DATA_CRC_ERROR;
@@ -655,6 +659,8 @@ uint8_t SD_GetDataResponse(void)
 
 uint8_t SD_GoIdleState(void)
 {
+  uint16_t Timeout = SD_TIMEOUT_VALUE;
+
   SD_CmdAnswer_typedef response;
   __IO uint8_t counter = 0;
   /* Send CMD0 (SD_CMD_GO_IDLE_STATE) to put SD in SPI mode and
@@ -669,8 +675,7 @@ uint8_t SD_GoIdleState(void)
       return SD_CARD_ERR;
     }
   }
-  while(response.r1 != SD_R1_IN_IDLE_STATE);
-
+  while(response.r1 != SD_R1_IN_IDLE_STATE && (--Timeout > 1));
 
   /* Send CMD8 (SD_CMD_SEND_IF_COND) to check the power supply status
      and wait until response (R7 Format) equal to 0xAA and */
@@ -679,6 +684,8 @@ uint8_t SD_GoIdleState(void)
   SPI_Transmit_Byte(SD_DUMMY_BYTE);
   if((response.r1  & SD_R1_ILLEGAL_COMMAND) == SD_R1_ILLEGAL_COMMAND)
   {
+	 Timeout = SD_TIMEOUT_VALUE;
+
     /* Initialize card V1 */
     do
     {
@@ -693,11 +700,13 @@ uint8_t SD_GoIdleState(void)
       SD_Deselect();
       SPI_Transmit_Byte(SD_DUMMY_BYTE);
     }
-    while(response.r1 == SD_R1_IN_IDLE_STATE);
+    while(response.r1 == SD_R1_IN_IDLE_STATE && (--Timeout > 1));
     flag_SDHC = 0;
   }
   else if(response.r1 == SD_R1_IN_IDLE_STATE)
   {
+	 Timeout = SD_TIMEOUT_VALUE;
+
       /* Initialize card V2 */
     do {
 
@@ -711,11 +720,13 @@ uint8_t SD_GoIdleState(void)
       SD_Deselect();
       SPI_Transmit_Byte(SD_DUMMY_BYTE);
     }
-    while(response.r1 == SD_R1_IN_IDLE_STATE);
+    while(response.r1 == SD_R1_IN_IDLE_STATE && (--Timeout > 1));
 
     if((response.r1 & SD_R1_ILLEGAL_COMMAND) == SD_R1_ILLEGAL_COMMAND)
     {
-      do {
+   	Timeout = SD_TIMEOUT_VALUE;
+
+   	do {
         /* Send CMD55 (SD_CMD_APP_CMD) before any ACMD command: R1 response (0x00: no errors) */
         response = SD_SendCmd(SD_CMD_APP_CMD, 0, 0xFF, SD_ANSWER_R1_EXPECTED);
         SD_Deselect();
@@ -729,7 +740,7 @@ uint8_t SD_GoIdleState(void)
         SD_Deselect();
         SPI_Transmit_Byte(SD_DUMMY_BYTE);
       }
-      while(response.r1 == SD_R1_IN_IDLE_STATE);
+      while(response.r1 == SD_R1_IN_IDLE_STATE && (--Timeout > 1));
     }
 
     /* Send CMD58 (SD_CMD_READ_OCR) to initialize SDHC or SDXC cards: R3 response (0x00: no errors) */

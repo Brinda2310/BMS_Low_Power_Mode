@@ -6,6 +6,7 @@
  */
 
 #include <BMS_Serial_Communication.h>
+#include <BMS_Timing.h>
 
 bool Debug_COM_Enable = true;
 
@@ -53,7 +54,7 @@ void BMS_Debug_COM_Write_Data(void *TxBuffer,uint16_t Size)
 	{
 		USART_Write(USART_1,TxBuffer,Size);
 		/* Delay is required to allow USART to send all the bytes from TxBuffer as it is configured in interrupt mode */
-//		Delay_Millis(2);
+		Delay_Millis(2);
 	}
 }
 

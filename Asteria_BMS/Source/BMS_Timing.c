@@ -6,10 +6,11 @@
  */
 
 #include <BMS_Timing.h>
+#include <BMS_Watchdog.h>
 
 /* Flags to monitor 25Hz and 1Hz loop; 25Hz flag will be true after every 40ms time period;
  * 1Hz flag will be true after every one second */
-bool _25Hz_Flag = false,_1Hz_Flag = false;
+bool _25Hz_Flag = false,_1Hz_Flag = false,_10Hz_Flag = false;
 
 /* Variable to count to number of 40ms duration to achieve other tumer delays */
 static volatile int16_t Counter = 0;
@@ -31,15 +32,15 @@ void BMS_Timers_Init()
 		/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
 		Timer_Init(TIMER_2,NORMAL_MODE_40ms_PERIOD);
 
-		/* Timer value set to 1 second */
+		/* Configure timer in low power mode with the value defined in macro */
 		Timer_Init(TIMER_6,_1SEC_PERIOD);
 	}
 	else if (MCU_Power_Mode == LOW_POWER_MODE)
 	{
-		/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
-		Timer_Init(TIMER_2,LOW_POWER_MODE_40ms_PERIOD);
+		/* Timer value set to 50ms i.e. interrupt will occur at every 50ms and makes the flag true in ISR */
+		Timer_Init(TIMER_2,LOW_POWER_MODE_50ms_PERIOD);
 
-		/* Timer value set to 1 second */
+		/* Configure timer in low power mode with the value defined in macro */
 		Timer_Init(TIMER_6,LOW_POWER_MODE_1SEC_PERIOD);
 	}
 }
@@ -76,8 +77,27 @@ void TIM2_PeriodElapsedCallback()
 
 	Counter++;
 
+	if(MCU_Power_Mode == LOW_POWER_MODE)
+	{
+		BMS_Watchdog_Refresh();
+	}
+	if((Counter % 4) == 0)
+	{
+		_25Hz_Flag = true;
+	}
+
+	if ((Counter % 10) == 0)
+	{
+		_10Hz_Flag = true;
+	}
+
 	/* Count the 40ms durations to create one second delay and the same flag is used in main loop for 1Hz tasks */
-	if (Counter >= NORMAL_MODE_1_SECONDS)
+	if(Counter >= NORMAL_MODE_1_SECONDS && MCU_Power_Mode == REGULAR_POWER_MODE)
+	{
+		_1Hz_Flag = true;
+		Counter = 0;
+	}
+	else if(Counter >= LOW_POWER_MODE_50ms_PERIOD && MCU_Power_Mode == LOW_POWER_MODE)
 	{
 		_1Hz_Flag = true;
 		Counter = 0;

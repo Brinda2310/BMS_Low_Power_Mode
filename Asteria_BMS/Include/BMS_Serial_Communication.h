@@ -10,9 +10,10 @@
 
 #include <USART_API.h>
 
-#define REGULAR_POWER_MODE_BUAD_RATE							115200
-#define LOW_POWER_MODE_BAUD_RATE								9600
+#define LOW_POWER_MODE_BAUD_RATE							9600
+#define NORMAL_POWER_MODE_BUAD_RATE						LOW_POWER_MODE_BAUD_RATE
 
+/* Variable to use the debug functionality when SOC/SOH logic is not used */
 extern bool Debug_COM_Enable;
 
 /* Prototypes for the function defined in BMS_Serial_Communication.c file */

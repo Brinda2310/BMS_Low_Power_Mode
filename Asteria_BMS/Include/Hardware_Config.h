@@ -27,7 +27,7 @@
 #define DISABLE											0
 #define ENABLE											!DISABLE
 
-#define BOARD_STATUS_ERROR_LED							ENABLE
+#define BOARD_STATUS_ERROR_LED					ENABLE
 
 #define NUM_OF_USARTS									1
 #define NUM_OF_SPI_BUSES								1
@@ -49,7 +49,7 @@
 #define SD_CARD_DETECT									GPIO_PIN_1
 
 /********************************************* Timer Related Macros ****************************************************/
-#define _10KHZ_PRESCALAR								199
+#define _10KHZ_PRESCALAR								1599
 
 #if PWM_FUNCTION == ENABLE
 #define TIM1_PWM_PRESCALAR								1000000
@@ -138,10 +138,12 @@
 #define I2C3_SUBPRIOIRTY								0
 #endif
 
-#define I2C_100KHZ										0x9032262A
+#define I2C_100KHZ										0x3032262A
+//#define I2C_100KHZ										0x10310309
 #define I2C_400KHZ										0x90310309
-#define I2C_1MHZ										0x40200204
-#define I2C_DATA_TIMEOUT								100
+#define I2C_1MHZ											0x40200204
+#define I2C_2MHZ											0x90120405
+#define I2C_DATA_TIMEOUT								4000
 
 #if defined (USE_I2C1) || defined(USE_I2C3)
 #if (I2C1_MODE == NORMAL_I2C_MODE && I2C3_MODE == NORMAL_I2C_MODE) || (I2C1_MODE == SMBUS_MODE && I2C3_MODE == SMBUS_MODE)

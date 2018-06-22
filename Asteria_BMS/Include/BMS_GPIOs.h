@@ -17,7 +17,7 @@
 #define LED4_PORT										GPIO_B
 #define LED5_PORT										GPIO_A
 #define LED6_PORT										GPIO_B
-#define BMS_SWITCH_PORT									GPIO_A
+#define BMS_SWITCH_PORT								GPIO_A
 
 /* GPIO pins settings(STM32L4) for switch and LEDs */
 #define LED_1											(1 << 0)
@@ -26,7 +26,7 @@
 #define LED_4											(1 << 5)
 #define LED_5											(1 << 2)
 #define LED_6											(1 << 0)
-#define BMS_SWITCH										(1 << 8)
+#define BMS_SWITCH									(1 << 8)
 
 /**
  * Enums for patterns to be displayed on LEDs

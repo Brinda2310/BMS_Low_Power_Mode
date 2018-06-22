@@ -17,8 +17,8 @@ bool BMS_Watchdog_Enable = false;
  */
 void BMS_watchdog_Init(void)
 {
-	/* Initialize the watchdog timer with 2 seconds of timeout value */
-	IWDG_Init(_2_SECONDS_WDG);
+	/* Initialize the watchdog timer with 3 seconds of timeout value */
+	IWDG_Init(_3_SECONDS_WDG);
 
 	/* As soon as this function is called this variable will become true so as to indicate the watchdog timer
 	 * was enabled for this code execution (logged as variable in the SD card )*/

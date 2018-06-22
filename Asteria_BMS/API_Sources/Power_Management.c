@@ -10,6 +10,7 @@
 #include <BMS_ASIC.h>
 #include <BMS_Serial_Communication.h>
 #include <BMS_Timing.h>
+#include <BMS_Watchdog.h>
 
 /* Variable which becomes true only when MCU wake up from sleep mode either from Vref pin or
  * from external switch press */
@@ -130,6 +131,10 @@ void Enter_Normal_Mode(void)
 {
 	if(MCU_Power_Mode != REGULAR_POWER_MODE)
 	{
+		BMS_Status_Error_LED_Toggle();
+
+		BMS_Watchdog_Refresh();
+
 		_25Hz_Flag = false;
 
 		MCU_Power_Mode = REGULAR_POWER_MODE;
@@ -150,6 +155,9 @@ void Enter_Normal_Mode(void)
 		/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
 		BMS_Timers_Init();
 
+		/* Enabled this function just to verify the Low power mode of MCU */
+		BMS_Status_Error_LED_Init();
+
 		/* Initialize the status LEDs which indicates the SOC and SOH */
 		if(Debug_COM_Enable == false)
 		{
@@ -164,6 +172,20 @@ void Enter_Normal_Mode(void)
 
 		/* Configure the ISL94203 I2C communication to 100KHz */
 		BMS_ASIC_Init();
+
+		/* Initialize the communication between AP and BMS; Current version of BMS supports SMBUS protocol */
+		AP_COM_Init(AP_COM_SMBUS_MODE);
+
+		/* Read the pack voltage to calculate the battery capacity used/remaining */
+		BMS_Read_Pack_Voltage();
+
+		/* Calculate the battery capacity used and remaining so that same value will be used to estimate
+		 * next values */
+		BMS_Estimate_Initial_Capacity();
+
+		/* Initialize the watch dog timer to 2 seconds i.e. if system hangs for some reason then it will
+		 * automatically restart the code */
+		BMS_watchdog_Init();
 
 		/* Resume Tick interrupt if disabled prior to Low Power Run mode entry */
 //		HAL_ResumeTick();
@@ -236,6 +258,7 @@ void SystemClock_Decrease(void)
 #endif
 }
 
+/* The peripheral clock frequency is set to 2MHz */
 void Set_System_Clock_Frequency(void)
 {
 #ifdef BMS_VERSION
@@ -245,13 +268,13 @@ void Set_System_Clock_Frequency(void)
 	/* MSI is enabled after System reset, activate PLL with MSI as source */
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
 	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_5;
+	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
 	RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
 	/* The peripheral frequency is set to Frequency = ((RCC_MSI_RANGE * PLLN)/PLLR) */
 	RCC_OscInitStruct.PLL.PLLM = 1;
-	RCC_OscInitStruct.PLL.PLLN = 8;
+	RCC_OscInitStruct.PLL.PLLN = 32;
 	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV8;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
 	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;

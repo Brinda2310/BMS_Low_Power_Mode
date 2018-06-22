@@ -111,17 +111,19 @@ int main(void)
 	/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
 	BMS_Timers_Init();
 
-	if(Debug_COM_Enable == true)
+	/* Enabled this function just to verify the Low power mode of MCU */
+	BMS_Status_Error_LED_Init();
+
+	if(Debug_COM_Enable == false)
 	{
 		BMS_SOH_SOC_LEDs_Init();
 	}
 	else
 	{
-		/* Initialize the USART to 115200 baud rate to debug the code */
-
+		/* Initialize the USART to 9600 baud rate to debug the code as this functionality is used
+		 * only while debugging the BMS */
+		BMS_Debug_COM_Init();
 	}
-
-	BMS_Debug_COM_Init();
 
 	/* Configure the switch as input to wake up the BMS in case of sleep and same will be used
 	 * to show the SOC and SOH on status LEDs*/
@@ -129,6 +131,9 @@ int main(void)
 
 	/* Configure the ISL94203 I2C communication to 100KHz */
 	BMS_ASIC_Init();
+
+	/* Initialize the communication between AP and BMS; Current version of BMS supports SMBUS protocol */
+	AP_COM_Init(AP_COM_SMBUS_MODE);
 
 	/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
 	RTC_Init();
@@ -172,7 +177,9 @@ int main(void)
 	 * sleep mode again */
 	Timer_Value = LOW_CONSUMPTION_DELAY_SECONDS;
 
-	uint8_t Data[20] = "HelloBytes\r";
+	/* Initialize the watch dog timer to 3 seconds i.e. if system hangs for some reason then it will
+	 * automatically restart the code */
+	BMS_watchdog_Init();
 
 	while(1)
 	{
@@ -181,25 +188,13 @@ int main(void)
 		/* This flag will be true after every 40ms(25Hz) in timer application file */
 		if (_25Hz_Flag == true)
 		{
-
-			if(RecData == 'A' && MCU_Power_Mode != REGULAR_POWER_MODE)
-			{
-//				BMS_Debug_COM_Write_Data(Data, 11);
-				Enter_Normal_Mode();
-			}
-			else if (RecData == 'B' && MCU_Power_Mode != LOW_POWER_MODE)
-			{
-				Enter_LP_Mode();
-//				BMS_Debug_COM_Write_Data(Data, 13);
-			}
-
-			RecData = 0;
-
 			/* If there is any problem in configuring the parameters in the ISL then we will try it again and again. Once it is done then
 			 * set BMS_Configuration_OK flag to true */
 			if(MCU_Power_Mode == REGULAR_POWER_MODE)
 			{
-				if(BMS_Configuration_OK == false )
+				/* If there is any problem in configuring the parameters in the ISL then we will try it again and again.
+				 * Once it is done then set BMS_Configuration_OK flag to true */
+				if(BMS_Configuration_OK == false)
 				{
 					if(BMS_Configure_Parameters() == RESULT_OK)
 					{
@@ -337,6 +332,9 @@ int main(void)
 
 			if(MCU_Power_Mode == REGULAR_POWER_MODE)
 			{
+				/* Variable to log the loop rate */
+				Loop_Rate_Counter++;
+
 				/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
 				 * all status flags and calculate the battery capacity used */
 				BMS_Read_Cell_Voltages();
@@ -383,9 +381,9 @@ int main(void)
 					Sleep_Mode = true;
 					/* Debug code to be removed after testing is completed */
 					BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
-					/* Configures the external trigger events which will wake up the MCU and then goes to
-					 * sleep mode */
-//					MCU_Enter_Sleep_Mode();
+					/* Configures the external trigger events which will wake up the MCU and
+					 * then goes to sleep/low power mode */
+//					Enter_LP_Mode();
 				}
 			}
 			/* If BMS IC is not in sleep mode then always reset the timer count to zero so as to get
@@ -503,15 +501,12 @@ int main(void)
 
 				/* If any time there is problem in querying the data from ISL94203 then restart the
 				 * I2C communication with ISL94203 */
-				if(BMS_Check_COM_Health() != HEALTH_OK && MCU_Power_Mode == REGULAR_POWER_MODE)
+				if(BMS_Check_COM_Health() != HEALTH_OK)
 				{
 					BMS_ASIC_Init();
 					/* Variable to log the number of time ISL restarted during its operation */
 					ASIC_Restart_Count++;
 				}
-
-				/* Variable to log the loop rate */
-				Loop_Rate_Counter++;
 
 				/* Reload the watchdog timer value to avoid resetting of code */
 				BMS_Watchdog_Refresh();
@@ -521,24 +516,22 @@ int main(void)
 					BMS_Data.Pack_Voltage = 19.8;
 				}
 
-				if(MCU_Power_Mode == REGULAR_POWER_MODE)
+				if(BMS_Check_Critical_Voltage() == BATT_CRITICAL_LEVEL_REACHED)
 				{
-					if(BMS_Check_Critical_Voltage() == BATT_CRITICAL_LEVEL_REACHED)
+					if(Critical_Batt_V_Counter++ >= 10)
 					{
-						if(Critical_Batt_V_Counter++ >= 10)
-						{
-							BMS_Debug_COM_Write_Data("Sleep Mode\r",11);
-							Sleep_Mode_Entered = true;
-							Log_All_Data();
-							Delay_Millis(10);
-							MCU_Enter_Sleep_Mode();
-						}
-					}
-					else
-					{
-						Critical_Batt_V_Counter = 0;
+						BMS_Debug_COM_Write_Data("Sleep Mode\r",11);
+						Sleep_Mode_Entered = true;
+						Log_All_Data();
+						Delay_Millis(10);
+//						MCU_Enter_Sleep_Mode();
 					}
 				}
+				else
+				{
+					Critical_Batt_V_Counter = 0;
+				}
+
 				/* SD card logging will happen only if SD card is present in the slot; This thing will also avoid
 				 * code stuck due to insertion of SD card while running the code */
 				if(SdStatus == SD_PRESENT && MCU_Power_Mode == REGULAR_POWER_MODE)
@@ -562,7 +555,6 @@ int main(void)
 						else
 						{
 							Log_Status = true;
-	//						BMS_Status_Error_LED_Toggle();
 						}
 					}
 					else
@@ -585,7 +577,8 @@ int main(void)
 					SD_Card_ReInit = true;
 				}
 
-//			BMS_Status_Error_LED_Toggle();
+				BMS_Status_Error_LED_Toggle();
+
 			_25Hz_Flag = false;
 		}
 
@@ -594,16 +587,158 @@ int main(void)
 		 * (inputs are provided as per the test cases) */
 		if(_1Hz_Flag == true)
 		{
-//			memset(Buffer,0,sizeof(Buffer));
-//			uint8_t Length = 0;
-//
-//			Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
-//			Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
-//			Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
-//			Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
-//
-//			BMS_Debug_COM_Write_Data(Buffer, Length);
+			memset(Buffer,0,sizeof(Buffer));
+			uint8_t Length = 0;
 
+			/* Debug code to be removed after testing */
+			switch(RecData)
+			{
+#ifdef TEST_DEBUG_GPS_INFO
+				case 'A':
+					Length += RTC_TimeShow((uint8_t*)&Buffer[Length],DATE_TIME_COMBINED);
+					break;
+#endif
+
+#ifdef TEST_DEBUG_START_TIME
+				case 'B':
+					Length += sprintf(&Buffer[Length],"MCU Time:%d\r",(int)Get_System_Time_Millis());
+					break;
+#endif
+
+#ifdef TEST_DEBUG_ALL_PACK_DATA
+				case 'C':
+					Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
+					Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
+					Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
+					Length += sprintf(&Buffer[Length],"Pack Curr = %0.3fmA\r",Get_BMS_Pack_Current());
+					break;
+#endif
+
+#ifdef TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE
+				case 'D':
+					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%0.3fmA\r",Get_BMS_Pack_Current_Adj());
+					Length += sprintf(&Buffer[Length],"C_D_Current :%0.4fmA",C_D_Accumulated_mAH);
+					if(Get_BMS_Charge_Discharge_Status() == CHARGING)
+					{
+						Length += sprintf(&Buffer[Length]," IN\r");
+					}
+					else
+					{
+						Length += sprintf(&Buffer[Length]," OUT\r");
+					}
+
+					break;
+#endif
+
+#ifdef TEST_DEBUG_CAPACITY_USED_REMAINING_TOTAL
+				case 'E':
+					Length += sprintf(&Buffer[Length],"Total Capacity :%0.2fmA\r",(float)BATTERY_CAPACITY);
+					Length += sprintf(&Buffer[Length],"Capacity Used :%0.3fmAH\r",Get_BMS_Capacity_Used());
+					Length += sprintf(&Buffer[Length],"Capacity Remaining :%0.3f%c\r",Get_BMS_Capacity_Remaining(),0x25);
+					break;
+#endif
+
+#ifdef TEST_DEBUG_C_D_TOTAL_PACK_CYLES
+				case 'F':
+					Length += sprintf(&Buffer[Length],"Charge Cycles :%d\r",(int)BMS_Data.Pack_Charge_Cycles);
+					Length += sprintf(&Buffer[Length],"Discharge Cycles :%d\r",(int)BMS_Data.Pack_Discharge_Cycles);
+					Length += sprintf(&Buffer[Length],"Total Cycles :%d\r",(int)Get_BMS_Total_Pack_Cycles());
+					break;
+#endif
+
+#ifdef TEST_DEBUG_HEALTH_I2C_ERROR
+				case 'G':
+					Length += sprintf(&Buffer[Length],"Health Info :%s\r",BMS_Data.Health_Status_Info);
+					Length += sprintf(&Buffer[Length],"I2C Error Info :%s\r",BMS_Data.I2C_Error_Info);
+					break;
+#endif
+
+#ifdef TEST_DEBUG_TEMPERATURE
+				case 'H':
+					Length += sprintf(&Buffer[Length],"Pack_Temp :%f degrees\r",BMS_Data.Pack_Temperature_Degrees);
+					break;
+#endif
+
+#ifdef TEST_DEBUG_WATCHDOG_TEST
+				case 'I':
+					Delay_Millis(TEST_DEBUG_WATCHDOG_RESET_TIME);
+					break;
+#endif
+
+#ifdef TEST_DEBUG_CODE_RESET
+				case 'J':
+					NVIC_SystemReset();
+					break;
+#endif
+
+#ifdef TEST_CHARGE_DISCHARGE_SOFTWARE
+				case 'K':
+					Start_Charging = true;
+					Start_Discharging = false;
+					break;
+
+				case 'L':
+					Start_Charging = false;
+					Start_Discharging = true;
+					break;
+				case 'M':
+					Start_Charging = false;
+					Start_Discharging = false;
+					break;
+#endif
+
+#ifdef TEST_DEBUG_LOG_FILE_INFO
+				case 'N':
+					Length += sprintf(&Buffer[Length],"Power Num :%d\r",SD_Summary_Data.Power_Up_Number);
+					Length += sprintf(&Buffer[Length],"File Num :%d\r",SD_Summary_Data.Total_Num_of_Files);
+					break;
+#endif
+#ifdef TEST_DEBUG_STOP_LOG
+				case 'O':
+					Stop_Log();
+					Log_Stopped = true;
+					break;
+				case 'P':
+					BMS_Log_Init();
+					Log_Stopped = false;
+					break;
+
+				case '?':
+					AP_COM_Init(AP_COM_SMBUS_MODE);
+					break;
+
+				case '#':
+					Enter_LP_Mode();
+					RecData = 0;
+					break;
+
+				case '$':
+					Enter_Normal_Mode();
+					RecData = 0;
+					break;
+
+#endif
+			}
+
+			/* If logging is happening without any problem then display SD Write OK string otherwise display
+			 * SD Write Error string over debug port */
+			if(Log_Status == true && Log_Stopped == false && MCU_Power_Mode == REGULAR_POWER_MODE)
+			{
+				Length += sprintf(&Buffer[Length],"SD Write OK\r\r");
+			}
+			else if (MCU_Power_Mode == REGULAR_POWER_MODE)
+			{
+				if(Log_Stopped == true)
+					Length += sprintf(&Buffer[Length],"Write Stopped\r\r");
+				else
+					Length += sprintf(&Buffer[Length],"SD Write Error\r\r");
+			}
+
+			if(MCU_Power_Mode == LOW_POWER_MODE)
+			{
+				Length += sprintf(&Buffer[Length],"Low Power Mode\r\r");
+			}
+			BMS_Debug_COM_Write_Data(Buffer, Length);
 			_1Hz_Flag = false;
 		}
 	}

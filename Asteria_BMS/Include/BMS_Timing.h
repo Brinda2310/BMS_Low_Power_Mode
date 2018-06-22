@@ -18,7 +18,7 @@
 #define NORMAL_MODE_5_SECONDS								(5*NORMAL_MODE_1_SECONDS)
 #define NORMAL_MODE_10_SECONDS								(2* NORMAL_MODE_5_SECONDS)
 
-#define LOW_POWER_MODE_40ms_PERIOD 							50
+#define LOW_POWER_MODE_50ms_PERIOD 							5
 #define LOW_POWER_MODE_1SEC_PERIOD 							100
 
 #define NORMAL_MODE_500_MILLIS							(NORMAL_MODE_1_SECONDS/2)
@@ -36,7 +36,7 @@
 #define _1SEC_PERIOD										1000
 
 
-extern bool _25Hz_Flag,_1Hz_Flag;
+extern bool _25Hz_Flag,_1Hz_Flag,_10Hz_Flag;
 
 extern uint8_t Loop_Rate_Counter, Loop_Rate_Log_Counter;
 
