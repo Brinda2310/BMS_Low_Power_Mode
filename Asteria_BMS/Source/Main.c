@@ -133,7 +133,7 @@ int main(void)
 	BMS_ASIC_Init();
 
 	/* Initialize the communication between AP and BMS; Current version of BMS supports SMBUS protocol */
-	AP_COM_Init(AP_COM_SMBUS_MODE);
+//	AP_COM_Init(AP_COM_SMBUS_MODE);
 
 	/* Initialize the RTC and set the RTC time and date to the date and time received from GPS */
 	RTC_Init();
@@ -532,56 +532,62 @@ int main(void)
 					Critical_Batt_V_Counter = 0;
 				}
 
-				/* SD card logging will happen only if SD card is present in the slot; This thing will also avoid
-				 * code stuck due to insertion of SD card while running the code */
-				if(SdStatus == SD_PRESENT && MCU_Power_Mode == REGULAR_POWER_MODE)
+			_25Hz_Flag = false;
+		}
+
+		if(_10Hz_Flag == true)
+		{
+			BMS_Status_Error_LED_Toggle();
+
+			/* SD card logging will happen only if SD card is present in the slot; This thing will also avoid
+			 * code stuck due to insertion of SD card while running the code */
+			if(SdStatus == SD_PRESENT && MCU_Power_Mode == REGULAR_POWER_MODE)
+			{
+				/* If SD card is not removed from the slot then only start immediate logging */
+				if(SD_Card_ReInit == false)
 				{
-					/* If SD card is not removed from the slot then only start immediate logging */
-					if(SD_Card_ReInit == false)
+					/* Log all the variable in the SD card */
+					if(Log_All_Data() != RESULT_OK)
 					{
-						/* Log all the variable in the SD card */
-						if(Log_All_Data() != RESULT_OK)
+						/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
+						 * the SD card functionality */
+						Log_Init_Counter++;
+						Log_Status = false;
+						if (Log_Init_Counter >= (_1_SECONDS_TIME/5))
 						{
-							/* If logging is failed for more than 5 successive counts (125ms) then reinitialize
-							 * the SD card functionality */
-							Log_Init_Counter++;
-							Log_Status = false;
-							if (Log_Init_Counter >= (_1_SECONDS_TIME/5))
-							{
-								Log_Init_Counter = 0;
-								BMS_Log_Init();
-							}
-						}
-						else
-						{
-							Log_Status = true;
+							Log_Init_Counter = 0;
+							BMS_Log_Init();
 						}
 					}
 					else
 					{
-						/* As soon as SD card is inserted in the slot, we should initialize the SD card and then start
-						 * logging the data. After initializing the SD card, wait for 1000 milliseconds then start
-						 * logging to avoid problem in the logging */
-						static uint8_t Counter = 0;
-						if(Counter++ >= _1_SECONDS_TIME)
-						{
-							BMS_Log_Init();
-							SD_Card_ReInit = false;
-							Counter = 0;
-						}
+						Log_Status = true;
 					}
 				}
-				else if(SdStatus == SD_NOT_PRESENT)
+				else
 				{
-					Log_Status = false;
-					SD_Card_ReInit = true;
+					/* As soon as SD card is inserted in the slot, we should initialize the SD card and then start
+					 * logging the data. After initializing the SD card, wait for 1000 milliseconds then start
+					 * logging to avoid problem in the logging */
+					static uint8_t Counter = 0;
+					if(Counter++ >= _1_SECONDS_TIME)
+					{
+						BMS_Log_Init();
+						SD_Card_ReInit = false;
+						Counter = 0;
+					}
 				}
+			}
+			else if(SdStatus == SD_NOT_PRESENT)
+			{
+				Log_Status = false;
+				SD_Card_ReInit = true;
+			}
 
-				BMS_Status_Error_LED_Toggle();
+//			BMS_Status_Error_LED_Toggle();
 
-			_25Hz_Flag = false;
+			_10Hz_Flag = false;
 		}
-
 
 		/* 1Hz loop which displays the information on USART. It is used for debugging purpose only
 		 * (inputs are provided as per the test cases) */

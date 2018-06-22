@@ -30,7 +30,7 @@ void BMS_Timers_Init()
 	if(MCU_Power_Mode == REGULAR_POWER_MODE)
 	{
 		/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
-		Timer_Init(TIMER_2,NORMAL_MODE_40ms_PERIOD);
+		Timer_Init(TIMER_2,NORMAL_MODE_10ms_PERIOD);
 
 		/* Configure timer in low power mode with the value defined in macro */
 		Timer_Init(TIMER_6,_1SEC_PERIOD);
@@ -72,9 +72,6 @@ uint64_t Get_System_Time_Millis()
  */
 void TIM2_PeriodElapsedCallback()
 {
-	/* This variable is used in the main loop for 25Hz tasks */
-	_25Hz_Flag = true;
-
 	Counter++;
 
 	if(MCU_Power_Mode == LOW_POWER_MODE)
@@ -83,6 +80,7 @@ void TIM2_PeriodElapsedCallback()
 	}
 	if((Counter % 4) == 0)
 	{
+		/* This variable is used in the main loop for 25Hz tasks */
 		_25Hz_Flag = true;
 	}
 

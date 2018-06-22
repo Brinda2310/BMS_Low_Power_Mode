@@ -810,7 +810,7 @@ void SD_IO_Init(void)
 
   /*------------Put SD in SPI mode--------------*/
   /* SD SPI Configuration */
-  SPI_Init(SPI_1,DIVIDE_256,SPI_MASTER);
+  SPI_Init(SPI_1,DIVIDE_32,SPI_MASTER);
 
   /* SD chip select high */
   SD_Deselect();
