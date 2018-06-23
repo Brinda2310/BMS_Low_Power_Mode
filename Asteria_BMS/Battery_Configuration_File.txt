@@ -1,0 +1,8 @@
+BMS Configuration Parameters...!!!
+
+Installation Date:
+Manufacturer Name:
+Battery Chemistry:
+Battery ID:
+Battery Capacity:
+Number of cells:

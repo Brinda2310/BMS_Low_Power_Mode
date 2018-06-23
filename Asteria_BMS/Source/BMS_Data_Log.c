@@ -15,6 +15,7 @@
 FATFS FatFs;
 FIL Summary_File;
 FIL BMS_Log_File;
+FIL Battery_Config_File;
 FRESULT Result;
 UINT BytesWritten;
 
@@ -22,7 +23,7 @@ UINT BytesWritten;
 char GPS_Date_Time[25];
 
 /* Character buffer to hold the variables to be written to the SD card */
-static char String_Buffer[4096];
+static char String_Buffer[1500];
 
 /* Variable to handle the buffer index for data to be written to the SD card */
 static uint32_t *String_Index, Memory_Address1 = 0;
@@ -559,6 +560,63 @@ uint8_t Log_All_Data()
 	if(f_sync(&BMS_Log_File) != FR_OK)
 	{
 		Result = RESULT_ERROR;
+	}
+	return Result;
+}
+
+uint8_t BMS_Read_Configuration_File()
+{
+	uint8_t Result = RESULT_ERROR,Rx_Data,Break_Loop = false;
+	static bool Found_Terminator = false;
+	uint8_t Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
+
+	if(f_mount(&FatFs, "0", 1) == FR_OK)
+	{
+		if(f_open(&Battery_Config_File, "0:/Battery_Configuration_File.txt",FA_OPEN_EXISTING| FA_WRITE | FA_READ) == FR_OK)
+		{
+			Result = RESULT_OK;
+		}
+	}
+
+	char Buffer[100];
+	uint8_t Location = 0;
+
+	while(Found_Terminator == false && (Max_Characters_In_Line-- > 0))
+	{
+		f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
+		Location++;
+		if(Rx_Data == 0x0D)
+		{
+			Rx_Data = 0;
+			f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
+			if(Rx_Data == 0x0A)
+			{
+				f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
+				Location++;
+				f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
+				Location++;
+				Result = RESULT_OK;
+				Found_Terminator = true;
+			}
+		}
+	}
+
+	if(Max_Characters_In_Line <= 0)
+	{
+		return RESULT_ERROR;
+	}
+	else
+	{
+		Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
+	}
+
+	if(Found_Terminator == true)
+	{
+		Found_Terminator = false;
+
+		f_read(&Battery_Config_File, &Buffer[0], 17, &BytesWritten);
+		BMS_Debug_COM_Write_Data(Buffer,17);
+		Delay_Millis(15);
 	}
 	return Result;
 }

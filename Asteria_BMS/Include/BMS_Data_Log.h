@@ -12,10 +12,11 @@
 #include <SD_SPI.h>
 
 /* Base number for converting the integer to strings */
-#define MAX_DIGITS_IN_COUNT							6		/* Specifies the maximum digits in decimal number */
-#define DECIMAL_BASE								10
+#define MAX_DIGITS_IN_COUNT						6		/* Specifies the maximum digits in decimal number */
+#define DECIMAL_BASE									10
 #define BINARY_BASE									2
 #define OCTAL_BASE									8
+#define MAX_CHARACTERS_IN_LINE					0x64
 
 /* Maximum ranges of the variables for different data types */
 #define MAX_CHAR_VALUE								9
@@ -77,6 +78,8 @@ uint8_t Get_Count_Log_Summary_File(uint32_t Offset,uint16_t *Variable);
 void log_sprintf(void *data_array,char *dst_array,uint8_t *count,uint32_t *offset,uint8_t data_type);
 uint8_t Log_All_Data();
 void Stop_Log();
+uint8_t BMS_Read_Configuration_File();
+
 unsigned long Get_BMS_Log_File_Size(void);
 
 #endif /* BMS_DATA_LOG_H_ */
