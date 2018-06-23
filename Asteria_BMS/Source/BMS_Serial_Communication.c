@@ -21,7 +21,7 @@ void BMS_Debug_COM_Init()
 	{
 		if(MCU_Power_Mode == REGULAR_POWER_MODE)
 		{
-			USART_Init(USART_1,LOW_POWER_MODE_BAUD_RATE);
+			USART_Init(USART_1,NORMAL_POWER_MODE_BUAD_RATE);
 		}
 		else
 		{

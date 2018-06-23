@@ -23,7 +23,7 @@ UINT BytesWritten;
 char GPS_Date_Time[25];
 
 /* Character buffer to hold the variables to be written to the SD card */
-static char String_Buffer[1500],BMS_Installation_Date[10];
+static char String_Buffer[1500],BMS_Installation_Date[50];
 
 /* Variable to handle the buffer index for data to be written to the SD card */
 static uint32_t *String_Index, Memory_Address1 = 0;
@@ -53,6 +53,8 @@ static bool Power_Up_BMS = false;
 
 /* Variable to log the count for number of restarts occurred for ISL */
 uint32_t ASIC_Restart_Count = 0;
+
+static uint8_t Config_Param_Count = 0;
 
 /**
  * @brief  Function to create/check the log summary file. Create the BMS log files by reading the counts
@@ -566,7 +568,9 @@ uint8_t Log_All_Data()
 
 uint8_t BMS_Read_Configuration_File()
 {
-	uint8_t Result = RESULT_ERROR,Rx_Data;
+	static uint32_t Last_String_Start_Location = 0;
+	uint8_t Result = RESULT_ERROR,Rx_Data = 0, Index = 0;
+	uint8_t Rec_Data_Buffer[200],Lcl_Index = 0;
 	static bool Found_Terminator = false;
 	uint8_t Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
 
@@ -610,37 +614,97 @@ uint8_t BMS_Read_Configuration_File()
 
 		while(Found_Terminator == false && (Max_Characters_In_Line-- > 0))
 		{
-			f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
-			if(Rx_Data == ':')
+			f_read(&Battery_Config_File, &Rec_Data_Buffer[Lcl_Index], 1, &BytesWritten);
+			if(Rec_Data_Buffer[Lcl_Index] == ':' && Config_Param_Count == 0)
 			{
-				static uint8_t Index = 0;
-				Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
-				Rx_Data = 0;
-
-				while(Rx_Data != 0x0D && (Max_Characters_In_Line-- > 0))
-				{
-					f_read(&Battery_Config_File, &BMS_Installation_Date[Index], 1, &BytesWritten);
-					Rx_Data = BMS_Installation_Date[Index];
-					Index++;
-				}
-
-				if(Max_Characters_In_Line <= 0)
+				if(strcmp(Rec_Data_Buffer,"Installation Date:") != 0)
 				{
 					return RESULT_ERROR;
 				}
-				else if (Index >= 10 && Index <= 11)
+				else
 				{
-					Found_Terminator = true;
+					Config_Param_Count++;
 					Rx_Data = 0;
-					BMS_Debug_COM_Write_Data(BMS_Installation_Date,Index);
-					Delay_Millis(5);
-					Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
-				}
-				else if (Index > 11)
-				{
-					return RESULT_ERROR;
+
+					while(Rx_Data != 0x0A && (Max_Characters_In_Line-- > 0))
+					{
+						f_read(&Battery_Config_File, &BMS_Installation_Date[Index], 1, &BytesWritten);
+
+						if((BMS_Installation_Date[Index] != 0x0D) ||(BMS_Installation_Date[Index] != 0x0A))
+						{
+							Rx_Data = BMS_Installation_Date[Index];
+						}
+						Index++;
+						Lcl_Index++;
+					}
+
+					if(Max_Characters_In_Line <= 0)
+					{
+						return RESULT_ERROR;
+					}
+					else if (Index >= 10 && Index <= 12)
+					{
+						Last_String_Start_Location = Lcl_Index;
+//						Found_Terminator = true;
+						Rx_Data = 0;
+						BMS_Debug_COM_Write_Data(BMS_Installation_Date,Index);
+						Delay_Millis(20);
+						Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
+
+					}
+					else if (Index > 12)
+					{
+						return RESULT_ERROR;
+					}
+//					BMS_Debug_COM_Write_Data("Param1\r",7);
+//					Delay_Millis(15);
 				}
 			}
+
+			if(Rec_Data_Buffer[Lcl_Index] == ':' && Config_Param_Count == 1)
+			{
+				Index = 0;
+				if(strcmp(&Rec_Data_Buffer[Last_String_Start_Location+1],"Manufacturer Name:") != 0)
+				{
+					return RESULT_ERROR;
+				}
+				else
+				{
+					Config_Param_Count++;
+					Rx_Data = 0;
+
+					while(Rx_Data != 0x0A && (Max_Characters_In_Line-- > 0))
+					{
+						f_read(&Battery_Config_File, &BMS_Installation_Date[Index], 1, &BytesWritten);
+						if((BMS_Installation_Date[Index] != 0x0D) ||(BMS_Installation_Date[Index] != 0x0A))
+						{
+							Rx_Data = BMS_Installation_Date[Index];
+						}
+						Index++;
+						Lcl_Index++;
+					}
+
+					if(Max_Characters_In_Line <= 0)
+					{
+						return RESULT_ERROR;
+					}
+					else if (Index >= 17 && Index <= 19)
+					{
+						Found_Terminator = true;
+						Rx_Data = 0;
+						BMS_Debug_COM_Write_Data(BMS_Installation_Date,Index);
+						Delay_Millis(20);
+						Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
+					}
+					else if (Index > 20)
+					{
+						return RESULT_ERROR;
+					}
+//					BMS_Debug_COM_Write_Data("Param2\r",7);
+//					Delay_Millis(15);
+				}
+			}
+			Lcl_Index++;
 		}
 	}
 	else
