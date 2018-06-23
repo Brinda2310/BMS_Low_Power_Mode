@@ -23,7 +23,7 @@ UINT BytesWritten;
 char GPS_Date_Time[25];
 
 /* Character buffer to hold the variables to be written to the SD card */
-static char String_Buffer[1500];
+static char String_Buffer[1500],BMS_Installation_Date[10];
 
 /* Variable to handle the buffer index for data to be written to the SD card */
 static uint32_t *String_Index, Memory_Address1 = 0;
@@ -566,7 +566,7 @@ uint8_t Log_All_Data()
 
 uint8_t BMS_Read_Configuration_File()
 {
-	uint8_t Result = RESULT_ERROR,Rx_Data,Break_Loop = false;
+	uint8_t Result = RESULT_ERROR,Rx_Data;
 	static bool Found_Terminator = false;
 	uint8_t Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
 
@@ -578,13 +578,9 @@ uint8_t BMS_Read_Configuration_File()
 		}
 	}
 
-	char Buffer[100];
-	uint8_t Location = 0;
-
 	while(Found_Terminator == false && (Max_Characters_In_Line-- > 0))
 	{
 		f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
-		Location++;
 		if(Rx_Data == 0x0D)
 		{
 			Rx_Data = 0;
@@ -592,9 +588,7 @@ uint8_t BMS_Read_Configuration_File()
 			if(Rx_Data == 0x0A)
 			{
 				f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
-				Location++;
 				f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
-				Location++;
 				Result = RESULT_OK;
 				Found_Terminator = true;
 			}
@@ -614,10 +608,51 @@ uint8_t BMS_Read_Configuration_File()
 	{
 		Found_Terminator = false;
 
-		f_read(&Battery_Config_File, &Buffer[0], 17, &BytesWritten);
-		BMS_Debug_COM_Write_Data(Buffer,17);
-		Delay_Millis(15);
+		while(Found_Terminator == false && (Max_Characters_In_Line-- > 0))
+		{
+			f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
+			if(Rx_Data == ':')
+			{
+				static uint8_t Index = 0;
+				Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
+				Rx_Data = 0;
+
+				while(Rx_Data != 0x0D && (Max_Characters_In_Line-- > 0))
+				{
+					f_read(&Battery_Config_File, &BMS_Installation_Date[Index], 1, &BytesWritten);
+					Rx_Data = BMS_Installation_Date[Index];
+					Index++;
+				}
+
+				if(Max_Characters_In_Line <= 0)
+				{
+					return RESULT_ERROR;
+				}
+				else if (Index >= 10 && Index <= 11)
+				{
+					Found_Terminator = true;
+					Rx_Data = 0;
+					BMS_Debug_COM_Write_Data(BMS_Installation_Date,Index);
+					Delay_Millis(5);
+					Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
+				}
+				else if (Index > 11)
+				{
+					return RESULT_ERROR;
+				}
+			}
+		}
 	}
+	else
+	{
+		return RESULT_ERROR;
+	}
+
+	if(Found_Terminator == true)
+	{
+
+	}
+
 	return Result;
 }
 
