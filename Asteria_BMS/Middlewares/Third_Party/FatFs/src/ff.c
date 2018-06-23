@@ -2955,7 +2955,7 @@ FRESULT f_close (
 		}
 	}
 
-	disk_deinitialize(0);
+//	disk_deinitialize(0);
 
 	return res;
 }

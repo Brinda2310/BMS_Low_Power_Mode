@@ -538,8 +538,6 @@ int main(void)
 					Critical_Batt_V_Counter = 0;
 				}
 
-			BMS_Status_Error_LED_Toggle();
-
 			_50ms_Flag = false;
 		}
 
@@ -567,6 +565,8 @@ int main(void)
 					}
 					else
 					{
+						BMS_Status_Error_LED_Toggle();
+
 						Log_Status = true;
 					}
 				}
@@ -707,10 +707,12 @@ int main(void)
 				case 'O':
 					Stop_Log();
 					Log_Stopped = true;
+					RecData = 0;
 					break;
 				case 'P':
 					BMS_Log_Init();
 					Log_Stopped = false;
+					RecData = 0;
 					break;
 
 				case '?':
@@ -726,7 +728,6 @@ int main(void)
 					Enter_Normal_Mode();
 					RecData = 0;
 					break;
-
 #endif
 			}
 
