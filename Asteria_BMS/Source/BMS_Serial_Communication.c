@@ -11,7 +11,7 @@
 bool Debug_COM_Enable = true;
 
 /**
- * @brief  Function to initialize debug USART to 115200 baud rate
+ * @brief  Function to initialize debug USART to 9600 baud rate
  * @param  None
  * @retval None
  */

@@ -10,10 +10,10 @@
 
 /* Flags to monitor 25Hz and 1Hz loop; 25Hz flag will be true after every 40ms time period;
  * 1Hz flag will be true after every one second */
-bool _25Hz_Flag = false,_1Hz_Flag = false,_10Hz_Flag = false;
+bool _50ms_Flag = false,_1Sec_Flag = false,_100ms_Flag = false;
 
 /* Variable to count to number of 40ms duration to achieve other tumer delays */
-static volatile int16_t Counter = 0;
+static volatile int16_t Global_5ms_Counter = 0;
 
 /* variables to log the loop rate on SD card; Loop_Rate_Counter will be incremented after every 40ms duration
  * in main.c file */
@@ -29,8 +29,8 @@ void BMS_Timers_Init()
 {
 	if(MCU_Power_Mode == REGULAR_POWER_MODE)
 	{
-		/* Timer value set to 40ms i.e. interrupt will occur at every 40ms and makes the flag true in ISR */
-		Timer_Init(TIMER_2,NORMAL_MODE_10ms_PERIOD);
+		/* Timer value set to 5ms i.e. interrupt will occur at every 5ms and makes various flags true in ISR */
+		Timer_Init(TIMER_2,NORMAL_MODE_5ms_PERIOD);
 
 		/* Configure timer in low power mode with the value defined in macro */
 		Timer_Init(TIMER_6,_1SEC_PERIOD);
@@ -72,39 +72,35 @@ uint64_t Get_System_Time_Millis()
  */
 void TIM2_PeriodElapsedCallback()
 {
-	static uint8_t _1Hz_Count = 0,_25Hz_Count = 0;
+	static uint8_t Lcl_1Sec_Count = 0,Lcl_100ms_Count = 0;
 
-	Counter++;
-	_25Hz_Count++;
+	Global_5ms_Counter++;
 
 	if(MCU_Power_Mode == LOW_POWER_MODE)
 	{
 		BMS_Watchdog_Refresh();
 	}
-	if(_25Hz_Count >= 4)
+
+	if(Global_5ms_Counter >= 10)
 	{
-		/* This variable is used in the main loop for 25Hz tasks */
-		_25Hz_Flag = true;
-		_25Hz_Count = 0;
+		Global_5ms_Counter = 0;
+		Lcl_100ms_Count++;
+		/* This variable is used in the main loop for 20Hz tasks */
+		_50ms_Flag = true;
 	}
 
-	if ((Counter >= 20))
+	if(Lcl_100ms_Count >= 2)
 	{
-		_10Hz_Flag = true;
-		_1Hz_Count++;
-		Counter = 0;
+		Lcl_1Sec_Count++;
+		Lcl_100ms_Count = 0;
+		_100ms_Flag = true;
 	}
 
 	/* Count the 40ms durations to create one second delay and the same flag is used in main loop for 1Hz tasks */
-	if(_1Hz_Count >= 5 && MCU_Power_Mode == REGULAR_POWER_MODE)
+	if(Lcl_1Sec_Count>= 10)
 	{
-		_1Hz_Flag = true;
-		_1Hz_Count = 0;
-	}
-	else if(Counter >= LOW_POWER_MODE_50ms_PERIOD && MCU_Power_Mode == LOW_POWER_MODE)
-	{
-		_1Hz_Flag = true;
-		Counter = 0;
+		_1Sec_Flag = true;
+		Lcl_1Sec_Count = 0;
 	}
 }
 

@@ -135,7 +135,7 @@ void Enter_Normal_Mode(void)
 
 		BMS_Watchdog_Refresh();
 
-		_25Hz_Flag = false;
+		_50ms_Flag= false;
 
 		MCU_Power_Mode = REGULAR_POWER_MODE;
 
@@ -196,7 +196,7 @@ void Enter_LP_Mode(void)
 {
 	if(MCU_Power_Mode != LOW_POWER_MODE)
 	{
-		_25Hz_Flag = false;
+		_50ms_Flag = false;
 
 		Stop_Log();
 
@@ -258,7 +258,7 @@ void SystemClock_Decrease(void)
 #endif
 }
 
-/* The peripheral clock frequency is set to 2MHz */
+/* The peripheral clock frequency is set to 20MHz */
 void Set_System_Clock_Frequency(void)
 {
 #ifdef BMS_VERSION
@@ -268,7 +268,7 @@ void Set_System_Clock_Frequency(void)
 	/* MSI is enabled after System reset, activate PLL with MSI as source */
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
 	RCC_OscInitStruct.MSIState = RCC_MSI_ON;
-	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
+	RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;	/* 4MHz */
 	RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;

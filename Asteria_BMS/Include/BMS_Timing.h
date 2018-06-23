@@ -10,8 +10,10 @@
 
 #include <TIMER_API.h>
 
-#define NORMAL_MODE_10ms_PERIOD 							10
-#define NORMAL_MODE_1_SECONDS								(1000/NORMAL_MODE_10ms_PERIOD)
+#define NORMAL_MODE_5ms_PERIOD 							10
+#define NORMAL_MODE_50ms_PERIOD 							(5*NORMAL_MODE_5ms_PERIOD)
+
+#define NORMAL_MODE_1_SECONDS								(1000/NORMAL_MODE_50ms_PERIOD)
 #define NORMAL_MODE_2_SECONDS								(2*NORMAL_MODE_1_SECONDS)
 #define NORMAL_MODE_3_SECONDS								(3*NORMAL_MODE_1_SECONDS)
 #define NORMAL_MODE_4_SECONDS								(4*NORMAL_MODE_1_SECONDS)
@@ -33,10 +35,10 @@
 #define DEBUG_FUNCTION_ENABLE_PERIOD					NORMAL_MODE_5_SECONDS
 #define FACTORY_DEFAULT_PEROID							NORMAL_MODE_10_SECONDS
 
-#define _1SEC_PERIOD										1000
+#define _1SEC_PERIOD											2000
 
 
-extern bool _25Hz_Flag,_1Hz_Flag,_10Hz_Flag;
+extern bool _50ms_Flag,_1Sec_Flag,_100ms_Flag;
 
 extern uint8_t Loop_Rate_Counter, Loop_Rate_Log_Counter;
 

@@ -16,24 +16,24 @@
 #include <AP_Communication.h>
 #include <BMS_Watchdog.h>
 
-#define TEST_DEBUG_GPS_INFO									/* Character A*/
-#define TEST_DEBUG_START_TIME								/* Character B*/
-#define TEST_DEBUG_ALL_PACK_DATA							/* Character C*/
+#define TEST_DEBUG_GPS_INFO										/* Character A*/
+#define TEST_DEBUG_START_TIME										/* Character B*/
+#define TEST_DEBUG_ALL_PACK_DATA									/* Character C*/
 #define TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE					/* Character D*/
 #define TEST_DEBUG_CAPACITY_USED_REMAINING_TOTAL			/* Character E*/
 #define TEST_DEBUG_C_D_TOTAL_PACK_CYLES						/* Character F*/
-#define TEST_DEBUG_HEALTH_I2C_ERROR							/* Character G*/
-#define TEST_DEBUG_TEMPERATURE								/* Character H*/
-#define TEST_DEBUG_WATCHDOG_TEST							/* Character I*/
-#define TEST_DEBUG_CODE_RESET								/* Character J*/
-//#define TEST_CHARGE_DISCHARGE_SOFTWARE					/* Character K*/
-#define TEST_DEBUG_LOG_FILE_INFO							/* Character N*/
-#define TEST_DEBUG_STOP_LOG									/* Character O*/
+#define TEST_DEBUG_HEALTH_I2C_ERROR								/* Character G*/
+#define TEST_DEBUG_TEMPERATURE									/* Character H*/
+#define TEST_DEBUG_WATCHDOG_TEST									/* Character I*/
+#define TEST_DEBUG_CODE_RESET										/* Character J*/
+//#define TEST_CHARGE_DISCHARGE_SOFTWARE						/* Character K*/
+#define TEST_DEBUG_LOG_FILE_INFO									/* Character N*/
+#define TEST_DEBUG_STOP_LOG										/* Character O*/
 
-#define TEST_DEBUG_WATCHDOG_RESET_TIME						2100
+#define TEST_DEBUG_WATCHDOG_RESET_TIME							3100
 
-#define _2_SECONDS_TIME										50		/* Time for which SOC to be shown (50 * 40ms) */
-#define _1_SECONDS_TIME										(_2_SECONDS_TIME/2)
+#define _2_SECONDS_TIME												20		/* Time for which SOC to be shown (20 * 100ms) */
+#define _1_SECONDS_TIME												(_2_SECONDS_TIME/2)
 
 const uint8_t BMS_Firmware_Version[3] =
 {
@@ -101,19 +101,23 @@ int main(void)
 	/* Configure the sysTick interrupt to 1mS(default) and Set the NVIC group priority to 4 */
 	HAL_Init();
 
-	/* Configure the system clock frequency (Peripherals clock) to 80MHz */
+	/* Configure the system clock frequency (Peripherals clock) to 20MHz */
 	Set_System_Clock_Frequency();
 
 	/* Delay of 1000 milliSeconds is required to make sure BMS is not polled before it's POR cycle otherwise
 	 * BMS I2C will be locked */
 	Delay_Millis(1000);
 
-	/* Initialize the timer to 40mS(25Hz) and the same is used to achieve different loop rates */
+	/* Initialize the two timers; one to 50mS(20Hz) and the same is used to achieve different loop rates.
+	 * Second one is set to 1 Second to check for loop rate */
 	BMS_Timers_Init();
 
-	/* Enabled this function just to verify the Low power mode of MCU */
+	/* Enabled this function just to verify the Low power mode of MCU. PA7 pin configured
+	 * to check timing values on Logic analyzer. To be removed after testing */
 	BMS_Status_Error_LED_Init();
 
+	/* At start debug functionality is enabled. This will be disabled for the stable
+	 * version of code */
 	if(Debug_COM_Enable == false)
 	{
 		BMS_SOH_SOC_LEDs_Init();
@@ -185,8 +189,8 @@ int main(void)
 	{
 		BMS_Debug_COM_Read_Data(&RecData,1);
 
-		/* This flag will be true after every 40ms(25Hz) in timer application file */
-		if (_25Hz_Flag == true)
+		/* This flag will be true after every 50ms(20Hz) in timer application file */
+		if (_50ms_Flag == true)
 		{
 			/* If there is any problem in configuring the parameters in the ISL then we will try it again and again. Once it is done then
 			 * set BMS_Configuration_OK flag to true */
@@ -203,7 +207,7 @@ int main(void)
 				}
 
 				/* Continuously monitor the cells configuration from the ISL. If ISL has gone into factory reset settings then it will give number
-				 * of cells equal to 3. If number of cells are equal to the value which is configured earlier then write the default parameters again
+				 * of cells equal to 3. If number of cells are not equal to the value which is configured earlier then write the default parameters again
 				 * into the ISL EEPROM */
 				if(BMS_Read_Number_Of_Cells_Configuration() != RESULT_OK)
 				{
@@ -221,10 +225,11 @@ int main(void)
 					BMS_Configuration_OK = true;
 				}
 			}
+
 			/* Monitor the SD card's existence in the slot */
 			SD_Status();
 
-			/* If switch is pressed then start counting the time (40ms is the tick period) */
+			/* If switch is pressed then start counting the time (50ms is the tick period) */
 			if (BMS_Read_Switch_Status() == PRESSED)
 			{
 				Switch_Press_Time_Count++;
@@ -332,10 +337,7 @@ int main(void)
 
 			if(MCU_Power_Mode == REGULAR_POWER_MODE)
 			{
-				/* Variable to log the loop rate */
-				Loop_Rate_Counter++;
-
-				/* Query the BMS data at 25Hz; All cell voltages, pack voltage, pack current, pack temperature
+				/* Query the BMS data at 20Hz; All cell voltages, pack voltage, pack current, pack temperature
 				 * all status flags and calculate the battery capacity used */
 				BMS_Read_Cell_Voltages();
 				BMS_Read_Pack_Voltage();
@@ -366,6 +368,9 @@ int main(void)
 					/* If load is present then change the timer check value for sleep to 1 minute */
 					Timer_Value = LOW_CONSUMPTION_DELAY_SECONDS;
 				}
+
+				/* Variable to log the loop rate */
+				Loop_Rate_Counter++;
 			}
 
 			/* If BMS IC is forced to sleep mode then start counting the timer value; If BMS IC goes to
@@ -514,6 +519,7 @@ int main(void)
 				if(RecData == 'S')
 				{
 					BMS_Data.Pack_Voltage = 19.8;
+					RecData = 0;
 				}
 
 				if(BMS_Check_Critical_Voltage() == BATT_CRITICAL_LEVEL_REACHED)
@@ -532,13 +538,13 @@ int main(void)
 					Critical_Batt_V_Counter = 0;
 				}
 
-			_25Hz_Flag = false;
-		}
-
-		if(_10Hz_Flag == true)
-		{
 			BMS_Status_Error_LED_Toggle();
 
+			_50ms_Flag = false;
+		}
+
+		if(_100ms_Flag == true)
+		{
 			/* SD card logging will happen only if SD card is present in the slot; This thing will also avoid
 			 * code stuck due to insertion of SD card while running the code */
 			if(SdStatus == SD_PRESENT && MCU_Power_Mode == REGULAR_POWER_MODE)
@@ -584,14 +590,12 @@ int main(void)
 				SD_Card_ReInit = true;
 			}
 
-//			BMS_Status_Error_LED_Toggle();
-
-			_10Hz_Flag = false;
+			_100ms_Flag = false;
 		}
 
 		/* 1Hz loop which displays the information on USART. It is used for debugging purpose only
 		 * (inputs are provided as per the test cases) */
-		if(_1Hz_Flag == true)
+		if(_1Sec_Flag == true)
 		{
 			memset(Buffer,0,sizeof(Buffer));
 			uint8_t Length = 0;
@@ -745,7 +749,7 @@ int main(void)
 				Length += sprintf(&Buffer[Length],"Low Power Mode\r\r");
 			}
 			BMS_Debug_COM_Write_Data(Buffer, Length);
-			_1Hz_Flag = false;
+			_1Sec_Flag = false;
 		}
 	}
 }
