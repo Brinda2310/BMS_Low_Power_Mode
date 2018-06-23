@@ -72,28 +72,34 @@ uint64_t Get_System_Time_Millis()
  */
 void TIM2_PeriodElapsedCallback()
 {
+	static uint8_t _1Hz_Count = 0,_25Hz_Count = 0;
+
 	Counter++;
+	_25Hz_Count++;
 
 	if(MCU_Power_Mode == LOW_POWER_MODE)
 	{
 		BMS_Watchdog_Refresh();
 	}
-	if((Counter % 4) == 0)
+	if(_25Hz_Count >= 4)
 	{
 		/* This variable is used in the main loop for 25Hz tasks */
 		_25Hz_Flag = true;
+		_25Hz_Count = 0;
 	}
 
-	if ((Counter % 10) == 0)
+	if ((Counter >= 20))
 	{
 		_10Hz_Flag = true;
+		_1Hz_Count++;
+		Counter = 0;
 	}
 
 	/* Count the 40ms durations to create one second delay and the same flag is used in main loop for 1Hz tasks */
-	if(Counter >= NORMAL_MODE_1_SECONDS && MCU_Power_Mode == REGULAR_POWER_MODE)
+	if(_1Hz_Count >= 5 && MCU_Power_Mode == REGULAR_POWER_MODE)
 	{
 		_1Hz_Flag = true;
-		Counter = 0;
+		_1Hz_Count = 0;
 	}
 	else if(Counter >= LOW_POWER_MODE_50ms_PERIOD && MCU_Power_Mode == LOW_POWER_MODE)
 	{

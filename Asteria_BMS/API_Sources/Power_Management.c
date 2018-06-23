@@ -274,7 +274,7 @@ void Set_System_Clock_Frequency(void)
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
 	/* The peripheral frequency is set to Frequency = ((RCC_MSI_RANGE * PLLN)/PLLR) */
 	RCC_OscInitStruct.PLL.PLLM = 1;
-	RCC_OscInitStruct.PLL.PLLN = 32;
+	RCC_OscInitStruct.PLL.PLLN = 40;
 	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV8;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV7;
 	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV4;

@@ -49,7 +49,7 @@
 #define SD_CARD_DETECT									GPIO_PIN_1
 
 /********************************************* Timer Related Macros ****************************************************/
-#define _10KHZ_PRESCALAR								1599
+#define _10KHZ_PRESCALAR								1999
 
 #if PWM_FUNCTION == ENABLE
 #define TIM1_PWM_PRESCALAR								1000000
@@ -138,7 +138,7 @@
 #define I2C3_SUBPRIOIRTY								0
 #endif
 
-#define I2C_100KHZ										0x9032262A
+#define I2C_100KHZ										0x3032262A
 //#define I2C_100KHZ										0x10310309
 #define I2C_400KHZ										0x90310309
 #define I2C_1MHZ											0x40200204
