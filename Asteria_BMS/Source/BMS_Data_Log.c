@@ -319,7 +319,7 @@ uint8_t Create_BMS_Log_File()
 		File_Name[Lcl_Counter++] = 't';
 		File_Name[Lcl_Counter++] = '\0';
 
-		BMS_Debug_COM_Write_Data(File_Name,Lcl_Counter);
+//		BMS_Debug_COM_Write_Data(File_Name,Lcl_Counter);
 
 		/* Make sure file system is mounted before opening/writing the files */
 		if (f_mount(&FatFs, "0", 1) != FR_OK)
@@ -568,7 +568,7 @@ uint8_t Log_All_Data()
 
 uint8_t BMS_Read_Configuration_File()
 {
-	static uint32_t Last_String_Start_Location = 0;
+	uint16_t Last_Location = 0;
 	uint8_t Result = RESULT_ERROR,Rx_Data = 0, Index = 0;
 	uint8_t Rec_Data_Buffer[200],Lcl_Index = 0;
 	static bool Found_Terminator = false;
@@ -628,13 +628,13 @@ uint8_t BMS_Read_Configuration_File()
 
 					while(Rx_Data != 0x0A && (Max_Characters_In_Line-- > 0))
 					{
-						f_read(&Battery_Config_File, &BMS_Installation_Date[Index], 1, &BytesWritten);
+						f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
 
-						if((BMS_Installation_Date[Index] != 0x0D) ||(BMS_Installation_Date[Index] != 0x0A))
+						if((Rx_Data != 0x0D) &&(Rx_Data != 0x0A))
 						{
-							Rx_Data = BMS_Installation_Date[Index];
+							BMS_Installation_Date[Index] = Rx_Data;
+							Index++;
 						}
-						Index++;
 						Lcl_Index++;
 					}
 
@@ -642,13 +642,13 @@ uint8_t BMS_Read_Configuration_File()
 					{
 						return RESULT_ERROR;
 					}
-					else if (Index >= 10 && Index <= 12)
+					else if(Index >= 10 && Index <= 12)
 					{
-						Last_String_Start_Location = Lcl_Index;
-//						Found_Terminator = true;
+						Last_Location = Lcl_Index;
+						Last_Location++;
 						Rx_Data = 0;
 						BMS_Debug_COM_Write_Data(BMS_Installation_Date,Index);
-						Delay_Millis(20);
+						Delay_Millis(10);
 						Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
 
 					}
@@ -656,15 +656,13 @@ uint8_t BMS_Read_Configuration_File()
 					{
 						return RESULT_ERROR;
 					}
-//					BMS_Debug_COM_Write_Data("Param1\r",7);
-//					Delay_Millis(15);
 				}
 			}
 
 			if(Rec_Data_Buffer[Lcl_Index] == ':' && Config_Param_Count == 1)
 			{
 				Index = 0;
-				if(strcmp(&Rec_Data_Buffer[Last_String_Start_Location+1],"Manufacturer Name:") != 0)
+				if(strncmp(&Rec_Data_Buffer[Last_Location],"Manufacturer Name:",18) != 0)
 				{
 					return RESULT_ERROR;
 				}
@@ -675,12 +673,12 @@ uint8_t BMS_Read_Configuration_File()
 
 					while(Rx_Data != 0x0A && (Max_Characters_In_Line-- > 0))
 					{
-						f_read(&Battery_Config_File, &BMS_Installation_Date[Index], 1, &BytesWritten);
-						if((BMS_Installation_Date[Index] != 0x0D) ||(BMS_Installation_Date[Index] != 0x0A))
+						f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
+						if((Rx_Data != 0x0D) &&(Rx_Data != 0x0A))
 						{
-							Rx_Data = BMS_Installation_Date[Index];
+							BMS_Installation_Date[Index] = Rx_Data;
+							Index++;
 						}
-						Index++;
 						Lcl_Index++;
 					}
 
@@ -693,15 +691,13 @@ uint8_t BMS_Read_Configuration_File()
 						Found_Terminator = true;
 						Rx_Data = 0;
 						BMS_Debug_COM_Write_Data(BMS_Installation_Date,Index);
-						Delay_Millis(20);
+						Delay_Millis(15);
 						Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
 					}
 					else if (Index > 20)
 					{
 						return RESULT_ERROR;
 					}
-//					BMS_Debug_COM_Write_Data("Param2\r",7);
-//					Delay_Millis(15);
 				}
 			}
 			Lcl_Index++;

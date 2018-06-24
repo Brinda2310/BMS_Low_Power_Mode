@@ -49,7 +49,7 @@ typedef struct {
 #define SD_CSD_STRUCT_V1          0x2    /* CSD struct version V1 */
 #define SD_CSD_STRUCT_V2          0x1    /* CSD struct version V2 */
 
-#define SD_TIMEOUT_VALUE			 0xFFF
+#define SD_TIMEOUT_VALUE			 0xFFFF
 
 typedef enum {
  SD_ANSWER_R1_EXPECTED,

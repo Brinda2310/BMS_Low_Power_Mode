@@ -16,7 +16,7 @@
 #define DECIMAL_BASE									10
 #define BINARY_BASE									2
 #define OCTAL_BASE									8
-#define MAX_CHARACTERS_IN_LINE					0x64
+#define MAX_CHARACTERS_IN_LINE					0xB8
 
 /* Maximum ranges of the variables for different data types */
 #define MAX_CHAR_VALUE								9
