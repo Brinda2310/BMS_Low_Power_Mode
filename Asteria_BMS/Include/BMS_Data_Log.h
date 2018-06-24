@@ -16,12 +16,34 @@
 #define DECIMAL_BASE									10
 #define BINARY_BASE									2
 #define OCTAL_BASE									8
+
+
+#define PARAM_1_STRING								"Installation Date:"
+#define PARAM_1_DATA_LENGTH						10
+
+#define PARAM_2_STRING								"Manufacturer Name:"
+#define PARAM_2_DATA_LENGTH						17
+
+#define PARAM_3_STRING								"Battery Chemistry:"
+#define PARAM_3_DATA_LENGTH						5
+
+#define PARAM_4_STRING								"Battery ID:"
+#define PARAM_4_DATA_LENGTH						11
+
+#define PARAM_5_STRING								"Battery Capacity:"
+#define PARAM_5_DATA_LENGTH						4
+
+#define PARAM_6_STRING								"Number of cells:"
+#define PARAM_6_DATA_LENGTH						1
+
 #define MAX_CHARACTERS_IN_LINE					0xB8
+#define TERMINATOR_CHARACTER_1					0x0D
+#define TERMINATOR_CHARACTER_2					0x0A
 
 /* Maximum ranges of the variables for different data types */
 #define MAX_CHAR_VALUE								9
 #define MAX_INT_VALUE								99999
-#define MAX_SHORT_INT_VALUE							999
+#define MAX_SHORT_INT_VALUE						999
 #define MAX_LONG_VALUE								999999999
 #define MAX_FLOAT_VALUE								99999.999
 #define MAX_SHORT_FLOAT_VALUE						99.99
