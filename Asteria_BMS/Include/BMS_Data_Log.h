@@ -17,6 +17,8 @@
 #define BINARY_BASE									2
 #define OCTAL_BASE									8
 
+#define MAX_NUMBER_OF_PARAMS						6
+#define MAX_LENGTH_OF_PARAM_STRING				20
 
 #define PARAM_1_STRING								"Installation Date:"
 #define PARAM_1_DATA_LENGTH						10
