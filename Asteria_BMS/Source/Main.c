@@ -169,7 +169,14 @@ int main(void)
 	/* Read the pack voltage to calculate the battery capacity used/remaining */
 	BMS_Read_Pack_Voltage();
 
-	BMS_Read_Configuration_File();
+	if(BMS_Read_Configuration_File() == RESULT_OK)
+	{
+		BMS_Debug_COM_Write_Data("Battery Config File Read Success...!!!\r",39);
+	}
+	else
+	{
+		BMS_Debug_COM_Write_Data("Battery Config File Read Failed...!!!\r",38);
+	}
 
 	/* Create the LOG file on SD card by reading the count from log summary file */
 	BMS_Log_Init();

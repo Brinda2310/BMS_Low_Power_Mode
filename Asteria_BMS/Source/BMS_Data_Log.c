@@ -54,7 +54,7 @@ static bool Power_Up_BMS = false;
 /* Variable to log the count for number of restarts occurred for ISL */
 uint32_t ASIC_Restart_Count = 0;
 
-static uint8_t Config_Param_Count = 0;
+static uint8_t Config_Param_Index = 0;
 
 /**
  * @brief  Function to create/check the log summary file. Create the BMS log files by reading the counts
@@ -584,13 +584,11 @@ uint8_t BMS_Read_Configuration_File()
 	static bool Found_Terminator = false;
 	uint8_t Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
 
-	uint32_t Old_Time = Get_System_Time_Millis();
-
 	if(f_mount(&FatFs, "0", 1) == FR_OK)
 	{
-		if(f_open(&Battery_Config_File, "0:/Battery_Configuration_File.txt",FA_OPEN_EXISTING| FA_WRITE | FA_READ) == FR_OK)
+		if(f_open(&Battery_Config_File, "0:/Battery_Configuration_File.txt",FA_OPEN_EXISTING| FA_WRITE | FA_READ) != FR_OK)
 		{
-			Result = RESULT_OK;
+			return RESULT_ERROR;
 		}
 	}
 
@@ -605,8 +603,11 @@ uint8_t BMS_Read_Configuration_File()
 			{
 				f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
 				f_read(&Battery_Config_File, &Rx_Data, 1, &BytesWritten);
-				Result = RESULT_OK;
 				Found_Terminator = true;
+			}
+			else
+			{
+				return RESULT_ERROR;
 			}
 		}
 	}
@@ -631,7 +632,7 @@ uint8_t BMS_Read_Configuration_File()
 			if(Rec_Data_Buffer[Lcl_Index] == ':')
 			{
 				Index = 0;
-				if(strncmp((char*)&Rec_Data_Buffer[Last_Location],Param_Strings[Config_Param_Count],strlen(Param_Strings[Config_Param_Count])) != 0)
+				if(strncmp((char*)&Rec_Data_Buffer[Last_Location],Param_Strings[Config_Param_Index],strlen(Param_Strings[Config_Param_Index])) != 0)
 				{
 					return RESULT_ERROR;
 				}
@@ -655,7 +656,7 @@ uint8_t BMS_Read_Configuration_File()
 					{
 						return RESULT_ERROR;
 					}
-					else if(Index >= Param_String_Length[Config_Param_Count] && Index <= (Param_String_Length[Config_Param_Count]+2))
+					else if(Index >= Param_String_Length[Config_Param_Index] && Index <= (Param_String_Length[Config_Param_Index]+2))
 					{
 						Last_Location = Lcl_Index;
 						Last_Location++;
@@ -665,14 +666,14 @@ uint8_t BMS_Read_Configuration_File()
 						Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
 
 					}
-					else if (Index > (Param_String_Length[Config_Param_Count]+2))
+					else if (Index > (Param_String_Length[Config_Param_Index]+2))
 					{
 						return RESULT_ERROR;
 					}
-					Config_Param_Count++;
+					Config_Param_Index++;
 				}
 
-				if(Config_Param_Count >= (MAX_NUMBER_OF_PARAMS-1))
+				if(Config_Param_Index >= (MAX_NUMBER_OF_PARAMS-1))
 				{
 					Found_Terminator = true;
 				}
@@ -686,16 +687,9 @@ uint8_t BMS_Read_Configuration_File()
 		return RESULT_ERROR;
 	}
 
-	Delay_Millis(10);
-
-	uint8_t Buffer[20];
-
 	if(Found_Terminator == true)
 	{
-		uint8_t Len = sprintf(Buffer,"\rTime = %d", (Get_System_Time_Millis()- Old_Time));
-		BMS_Debug_COM_Write_Data(Buffer,Len);
-
-		Delay_Millis(10);
+		Result = RESULT_OK;
 	}
 
 	return Result;
