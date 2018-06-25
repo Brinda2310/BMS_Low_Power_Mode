@@ -312,6 +312,21 @@ typedef struct
 
 }ISL_943203_Data;
 
+typedef struct
+{
+	uint8_t Battery_Capacity[6];
+	uint8_t Max_Cell_Volt[5];
+	uint8_t Min_Cell_Volt[5];
+	uint8_t Number_Of_Cells[2];
+	uint8_t Max_Pack_Cycles[4];
+	uint8_t Installation_Date[12];
+	uint8_t Manufacturer_Name[30];
+	uint8_t Battery_Chemistry[10];
+	uint8_t Battery_ID[20];
+}Batt_Param_Data;
+
+extern Batt_Param_Data Battery_Param;
+
 extern ISL_943203_Data BMS_Data;
 
 extern BMS_Status_Flags Status_Flag;
@@ -325,10 +340,6 @@ extern uint16_t Current_Gain;
 extern double C_D_Accumulated_mAH;
 
 extern uint32_t Error_Check_Data;
-
-/* Constant battery parameters */
-extern const uint8_t Battery_ID[];
-extern const uint8_t BMS_Board_Serial_Number[];
 
 /* BMS IC configurations functions which will get called only at the start of the code */
 uint8_t BMS_Configure_Parameters(void);

@@ -17,9 +17,9 @@
 #define BINARY_BASE									2
 #define OCTAL_BASE									8
 
-#define MAX_NUMBER_OF_PARAMS						6
+#define MAX_NUMBER_OF_PARAMS						9
 #define MAX_LENGTH_OF_PARAM_STRING				35
-#define MAX_CHARACTERS_IN_FILE					200
+#define MAX_CHARACTERS_IN_FILE					400
 #define MAX_CHARACTERS_IN_LINE					0x64
 #define TERMINATOR_CHARACTER_1					0x0D
 #define TERMINATOR_CHARACTER_2					0x0A

@@ -26,6 +26,10 @@ uint8_t ISL_SLEEP_DATA[2] = {0x88,0x04};
 double Current_Amperes = 0.0, Previous_Amperes = 0.0,Total_Pack_Capacity = 0.0;
 uint32_t Current_Time = 0,Previous_Time = 0;
 
+/* Object of the structure holding all the battery parameters read from the configuration file
+ * and the same are logged on the SD card */
+Batt_Param_Data Battery_Param;
+
 /* Object of the structure holding all the data variables in which queried data is stored and used in the code */
 ISL_943203_Data BMS_Data;
 

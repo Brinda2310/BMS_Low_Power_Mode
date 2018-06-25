@@ -23,7 +23,7 @@ UINT BytesWritten;
 char GPS_Date_Time[25];
 
 /* Character buffer to hold the variables to be written to the SD card */
-static char String_Buffer[1500],BMS_Installation_Date[50];
+static char String_Buffer[1500];
 
 /* Variable to handle the buffer index for data to be written to the SD card */
 static uint32_t *String_Index, Memory_Address1 = 0;
@@ -353,7 +353,8 @@ uint8_t Create_BMS_Log_File()
 
 
 		/* Fill the buffer with battery parameters */
-		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery ID:%s   ",Battery_ID);
+		strncpy(&String_Buffer[*String_Index],(char*)Battery_Param.Battery_ID,strlen((char*)Battery_Param.Battery_ID));
+		*String_Index += strlen((char*)Battery_Param.Battery_ID);
 
 		if(BATTERY_TYPE == LI_POLYMER)
 		{
@@ -574,10 +575,13 @@ uint8_t BMS_Read_Configuration_File()
 											  "Battery Chemistry:",
 											  "Battery ID:",
 											  "Battery Capacity(mAH):",
-											  "Number of cells:"
+											  "Number of cells:",
+											  "Pack Max Cell(V):",
+											  "Pack Min Cell(V):",
+											  "Pack Max Cycles:"
 											 };
 
-	uint8_t Param_String_Length[MAX_NUMBER_OF_PARAMS] = {10,17,5,11,4,1};
+	uint8_t Param_String_Length[MAX_NUMBER_OF_PARAMS] = {10,17,5,11,4,1,3,3,2};
 	uint16_t Last_Location = 0;
 	uint8_t Result = RESULT_ERROR,Rx_Data = 0, Index = 0;
 	uint8_t Rec_Data_Buffer[MAX_CHARACTERS_IN_FILE],Lcl_Index = 0;
@@ -646,7 +650,36 @@ uint8_t BMS_Read_Configuration_File()
 
 						if((Rx_Data != TERMINATOR_CHARACTER_1) &&(Rx_Data != TERMINATOR_CHARACTER_2))
 						{
-							BMS_Installation_Date[Index] = Rx_Data;
+							switch(Config_Param_Index)
+							{
+								case 0:
+									Battery_Param.Installation_Date[Index] = Rx_Data;
+									break;
+								case 1:
+									Battery_Param.Manufacturer_Name[Index] = Rx_Data;
+									break;
+								case 2:
+									Battery_Param.Battery_Chemistry[Index] = Rx_Data;
+									break;
+								case 3:
+									Battery_Param.Battery_ID[Index] = Rx_Data;
+									break;
+								case 4:
+									Battery_Param.Battery_Capacity[Index] = Rx_Data;
+									break;
+								case 5:
+									Battery_Param.Number_Of_Cells[Index] = Rx_Data;
+									break;
+								case 6:
+									Battery_Param.Max_Cell_Volt[Index] = Rx_Data;
+									break;
+								case 7:
+									Battery_Param.Min_Cell_Volt[Index] = Rx_Data;
+									break;
+								case 8:
+									Battery_Param.Max_Pack_Cycles[Index] = Rx_Data;
+									break;
+							}
 							Index++;
 						}
 						Lcl_Index++;
@@ -661,8 +694,37 @@ uint8_t BMS_Read_Configuration_File()
 						Last_Location = Lcl_Index;
 						Last_Location++;
 						Rx_Data = 0;
-//						BMS_Debug_COM_Write_Data(BMS_Installation_Date,Index);
-//						Delay_Millis(10);
+//						switch(Config_Param_Index)
+//						{
+//							case 0:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Installation_Date,Index);
+//								break;
+//							case 1:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Manufacturer_Name,Index);
+//								break;
+//							case 2:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Battery_Chemistry,Index);
+//								break;
+//							case 3:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Battery_ID,Index);
+//								break;
+//							case 4:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Battery_Capacity,Index);
+//								break;
+//							case 5:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Number_Of_Cells,Index);
+//								break;
+//							case 6:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Max_Cell_Volt,Index);
+//								break;
+//							case 7:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Min_Cell_Volt,Index);
+//								break;
+//							case 8:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Max_Pack_Cycles,Index);
+//								break;
+//						}
+//						Delay_Millis(15);
 						Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
 
 					}
@@ -673,7 +735,7 @@ uint8_t BMS_Read_Configuration_File()
 					Config_Param_Index++;
 				}
 
-				if(Config_Param_Index >= (MAX_NUMBER_OF_PARAMS-1))
+				if(Config_Param_Index >= (MAX_NUMBER_OF_PARAMS))
 				{
 					Found_Terminator = true;
 				}
