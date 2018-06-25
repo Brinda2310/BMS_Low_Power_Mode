@@ -578,7 +578,6 @@ uint8_t BMS_Read_Configuration_File()
 											 };
 
 	uint8_t Param_String_Length[MAX_NUMBER_OF_PARAMS] = {10,17,5,11,4,1};
-
 	uint16_t Last_Location = 0;
 	uint8_t Result = RESULT_ERROR,Rx_Data = 0, Index = 0;
 	uint8_t Rec_Data_Buffer[200],Lcl_Index = 0;
@@ -628,15 +627,16 @@ uint8_t BMS_Read_Configuration_File()
 		while(Found_Terminator == false && (Max_Characters_In_Line-- > 0))
 		{
 			f_read(&Battery_Config_File, &Rec_Data_Buffer[Lcl_Index], 1, &BytesWritten);
-			if(Rec_Data_Buffer[Lcl_Index] == ':' && Config_Param_Count == 0)
+
+			if(Rec_Data_Buffer[Lcl_Index] == ':')
 			{
-				if(strncmp((char*)Rec_Data_Buffer,Param_Strings[0],strlen(Param_Strings[0])) != 0)
+				Index = 0;
+				if(strncmp((char*)&Rec_Data_Buffer[Last_Location],Param_Strings[Config_Param_Count],strlen(Param_Strings[Config_Param_Count])) != 0)
 				{
 					return RESULT_ERROR;
 				}
 				else
 				{
-					Config_Param_Count++;
 					Rx_Data = 0;
 
 					while(Rx_Data != TERMINATOR_CHARACTER_2 && (Max_Characters_In_Line-- > 0))
@@ -655,7 +655,7 @@ uint8_t BMS_Read_Configuration_File()
 					{
 						return RESULT_ERROR;
 					}
-					else if(Index >= Param_String_Length[0] && Index <= (Param_String_Length[0]+2))
+					else if(Index >= Param_String_Length[Config_Param_Count] && Index <= (Param_String_Length[Config_Param_Count]+2))
 					{
 						Last_Location = Lcl_Index;
 						Last_Location++;
@@ -665,14 +665,20 @@ uint8_t BMS_Read_Configuration_File()
 						Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
 
 					}
-					else if (Index > (Param_String_Length[0]+2))
+					else if (Index > (Param_String_Length[Config_Param_Count]+2))
 					{
 						return RESULT_ERROR;
 					}
+					Config_Param_Count++;
+				}
+
+				if(Config_Param_Count >= (MAX_NUMBER_OF_PARAMS-1))
+				{
+					Found_Terminator = true;
 				}
 			}
 
-			if(Rec_Data_Buffer[Lcl_Index] == ':' && Config_Param_Count == 1)
+/*			if(Rec_Data_Buffer[Lcl_Index] == ':' && Config_Param_Count == 1)
 			{
 				Index = 0;
 				if(strncmp((char*)&Rec_Data_Buffer[Last_Location],Param_Strings[1],strlen(Param_Strings[1])) != 0)
@@ -800,7 +806,7 @@ uint8_t BMS_Read_Configuration_File()
 					}
 				}
 			}
-
+*/
 			Lcl_Index++;
 		}
 	}
@@ -809,7 +815,7 @@ uint8_t BMS_Read_Configuration_File()
 		return RESULT_ERROR;
 	}
 
-	uint8_t Buffer[20];
+	char Buffer[20];
 
 	uint8_t Len = sprintf(Buffer,"\rTime = %d", (Get_System_Time_Millis()- Old_Time));
 	BMS_Debug_COM_Write_Data(Buffer,Len);
