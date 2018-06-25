@@ -18,27 +18,9 @@
 #define OCTAL_BASE									8
 
 #define MAX_NUMBER_OF_PARAMS						6
-#define MAX_LENGTH_OF_PARAM_STRING				20
-
-#define PARAM_1_STRING								"Installation Date:"
-#define PARAM_1_DATA_LENGTH						10
-
-#define PARAM_2_STRING								"Manufacturer Name:"
-#define PARAM_2_DATA_LENGTH						17
-
-#define PARAM_3_STRING								"Battery Chemistry:"
-#define PARAM_3_DATA_LENGTH						5
-
-#define PARAM_4_STRING								"Battery ID:"
-#define PARAM_4_DATA_LENGTH						11
-
-#define PARAM_5_STRING								"Battery Capacity:"
-#define PARAM_5_DATA_LENGTH						4
-
-#define PARAM_6_STRING								"Number of cells:"
-#define PARAM_6_DATA_LENGTH						1
-
-#define MAX_CHARACTERS_IN_LINE					0xB8
+#define MAX_LENGTH_OF_PARAM_STRING				35
+#define MAX_CHARACTERS_IN_FILE					200
+#define MAX_CHARACTERS_IN_LINE					0x64
 #define TERMINATOR_CHARACTER_1					0x0D
 #define TERMINATOR_CHARACTER_2					0x0A
 
@@ -51,11 +33,11 @@
 #define MAX_SHORT_FLOAT_VALUE						99.99
 
 /* Specifies the resolution for float value which can be .99(for 2) or .999(for 3) */
-#define SF_DECIMAL_POINT_PLACE						2
-#define LF_DECIMAL_POINT_PLACE						3
+#define SF_DECIMAL_POINT_PLACE					2
+#define LF_DECIMAL_POINT_PLACE					3
 
 /* Offsets for each count inside the log summary file */
-#define TOTAL_FILE_COUNT_INDEX						22
+#define TOTAL_FILE_COUNT_INDEX					22
 #define POWER_UP_NUMBER_INDEX						46
 
 #define _1MB_FILE_SIZE								1048576
