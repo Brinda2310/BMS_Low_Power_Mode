@@ -356,29 +356,43 @@ uint8_t Create_BMS_Log_File()
 		Stop_Time_Cursor = *String_Index + 8;
 		*String_Index += sprintf(&String_Buffer[*String_Index],", Stop:                    \r\n");
 
-
 		/* Fill the buffer with battery parameters */
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Battery ID:");
 		strncpy(&String_Buffer[*String_Index],(char*)Battery_Param.Battery_ID,strlen((char*)Battery_Param.Battery_ID));
 		*String_Index += strlen((char*)Battery_Param.Battery_ID);
+		*String_Index += sprintf(&String_Buffer[*String_Index],"   ");
 
-		if(BATTERY_TYPE == LI_POLYMER)
-		{
-			*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Type: Li-Polymer   ");
-		}
-		else if(BATTERY_TYPE == LI_ION)
-		{
-			*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Type: Li-Ion   ");
-		}
-		else
-		{
-			*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Type: Not defined   ");
-		}
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Battery Chemistry:");
+		strncpy(&String_Buffer[*String_Index],(char*)Battery_Param.Battery_Chemistry,strlen((char*)Battery_Param.Battery_Chemistry));
+		*String_Index += strlen((char*)Battery_Param.Battery_Chemistry);
+		*String_Index += sprintf(&String_Buffer[*String_Index],"   ");
 
-		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Number of Cells:%d   ",(int)BATT_NUMBER_OF_CELLS);
-		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Cpacity(mAH):%0.2f   ",(float)BATT_MAH);
-		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Cell Max(V):%0.2f   ",(float)BATT_CELL_VOLT_MAX);
-		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Cell Min(V):%0.2f   ",(float)BATT_CELL_VOLT_MIN);
-		*String_Index += sprintf(&String_Buffer[*String_Index], "Battery Pack Cycles(V):%d   \r\n",(int)BATT_MAX_PACK_CYCLES);
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Battery Number of Cells:");
+		strncpy(&String_Buffer[*String_Index],(char*)Battery_Param.Number_Of_Cells,strlen((char*)Battery_Param.Number_Of_Cells));
+		*String_Index += strlen((char*)Battery_Param.Number_Of_Cells);
+		*String_Index += sprintf(&String_Buffer[*String_Index],"   ");
+
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Battery Capacity(mAH):");
+		strncpy(&String_Buffer[*String_Index],(char*)Battery_Param.Battery_Capacity,strlen((char*)Battery_Param.Battery_Capacity));
+		*String_Index += strlen((char*)Battery_Param.Battery_Capacity);
+		*String_Index += sprintf(&String_Buffer[*String_Index],"   ");
+
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Battery Cell Max(V):");
+		strncpy(&String_Buffer[*String_Index],(char*)Battery_Param.Max_Cell_Volt,strlen((char*)Battery_Param.Max_Cell_Volt));
+		*String_Index += strlen((char*)Battery_Param.Max_Cell_Volt);
+		*String_Index += sprintf(&String_Buffer[*String_Index],"   ");
+
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Battery Cell Min(V):");
+		strncpy(&String_Buffer[*String_Index],(char*)Battery_Param.Min_Cell_Volt,strlen((char*)Battery_Param.Min_Cell_Volt));
+		*String_Index += strlen((char*)Battery_Param.Min_Cell_Volt);
+		*String_Index += sprintf(&String_Buffer[*String_Index],"   ");
+
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Battery Pack Cycles:");
+		strncpy(&String_Buffer[*String_Index],(char*)Battery_Param.Max_Pack_Cycles,strlen((char*)Battery_Param.Max_Pack_Cycles));
+		*String_Index += strlen((char*)Battery_Param.Max_Pack_Cycles);
+		*String_Index += sprintf(&String_Buffer[*String_Index],"   ");
+
+		*String_Index += sprintf(&String_Buffer[*String_Index],"\r\n");
 
 		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,RTC_Time,Start_Time,End_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
@@ -697,37 +711,37 @@ uint8_t BMS_Read_Configuration_File()
 						Last_Location = Lcl_Index;
 						Last_Location++;
 						Rx_Data = 0;
-//						switch(Config_Param_Index)
-//						{
-//							case 0:
-//								BMS_Debug_COM_Write_Data(Battery_Param.Installation_Date,Index);
-//								break;
-//							case 1:
-//								BMS_Debug_COM_Write_Data(Battery_Param.Manufacturer_Name,Index);
-//								break;
-//							case 2:
-//								BMS_Debug_COM_Write_Data(Battery_Param.Battery_Chemistry,Index);
-//								break;
-//							case 3:
-//								BMS_Debug_COM_Write_Data(Battery_Param.Battery_ID,Index);
-//								break;
-//							case 4:
-//								BMS_Debug_COM_Write_Data(Battery_Param.Battery_Capacity,Index);
-//								break;
-//							case 5:
-//								BMS_Debug_COM_Write_Data(Battery_Param.Number_Of_Cells,Index);
-//								break;
-//							case 6:
-//								BMS_Debug_COM_Write_Data(Battery_Param.Max_Cell_Volt,Index);
-//								break;
-//							case 7:
-//								BMS_Debug_COM_Write_Data(Battery_Param.Min_Cell_Volt,Index);
-//								break;
-//							case 8:
-//								BMS_Debug_COM_Write_Data(Battery_Param.Max_Pack_Cycles,Index);
-//								break;
-//						}
-//						Delay_Millis(15);
+						switch(Config_Param_Index)
+						{
+							case 0:
+								BMS_Debug_COM_Write_Data(Battery_Param.Installation_Date,Index);
+								break;
+							case 1:
+								BMS_Debug_COM_Write_Data(Battery_Param.Manufacturer_Name,Index);
+								break;
+							case 2:
+								BMS_Debug_COM_Write_Data(Battery_Param.Battery_Chemistry,Index);
+								break;
+							case 3:
+								BMS_Debug_COM_Write_Data(Battery_Param.Battery_ID,Index);
+								break;
+							case 4:
+								BMS_Debug_COM_Write_Data(Battery_Param.Battery_Capacity,Index);
+								break;
+							case 5:
+								BMS_Debug_COM_Write_Data(Battery_Param.Number_Of_Cells,Index);
+								break;
+							case 6:
+								BMS_Debug_COM_Write_Data(Battery_Param.Max_Cell_Volt,Index);
+								break;
+							case 7:
+								BMS_Debug_COM_Write_Data(Battery_Param.Min_Cell_Volt,Index);
+								break;
+							case 8:
+								BMS_Debug_COM_Write_Data(Battery_Param.Max_Pack_Cycles,Index);
+								break;
+						}
+						Delay_Millis(15);
 						Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
 
 					}
