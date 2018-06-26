@@ -85,7 +85,7 @@ uint8_t Timer_Init(uint8_t Timer_Num,uint32_t Period)
 
 	}
 
-	/* Configure the timer resolution value to 100uS. The same can be configured in Hardware_Config.h */
+	/* Configure the timer resolution value to 500uS(1/20kHz * 10) in normal mode. The same can be configured in Hardware_Config.h */
 	TimHandle.Init.Prescaler 		= _20KHZ_PRESCALAR;
 	TimHandle.Init.Period 			= ((Period * 10) - 1);
 	TimHandle.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;

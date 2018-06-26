@@ -575,7 +575,6 @@ int main(void)
 					else
 					{
 						BMS_Status_Error_LED_Toggle();
-
 						Log_Status = true;
 					}
 				}
@@ -593,7 +592,7 @@ int main(void)
 					}
 				}
 			}
-			else if(SdStatus == SD_NOT_PRESENT)
+			else if(SdStatus == SD_NOT_PRESENT && MCU_Power_Mode == REGULAR_POWER_MODE)
 			{
 				Log_Status = false;
 				SD_Card_ReInit = true;
@@ -742,7 +741,7 @@ int main(void)
 
 			/* If logging is happening without any problem then display SD Write OK string otherwise display
 			 * SD Write Error string over debug port */
-			if(Log_Status == true && Log_Stopped == false && MCU_Power_Mode == REGULAR_POWER_MODE)
+			if(Log_Status == true && MCU_Power_Mode == REGULAR_POWER_MODE)
 			{
 				Length += sprintf(&Buffer[Length],"SD Write OK\r\r");
 			}

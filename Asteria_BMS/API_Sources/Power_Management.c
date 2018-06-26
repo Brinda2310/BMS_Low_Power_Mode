@@ -115,13 +115,13 @@ static void SystemPower_Config(void)
 	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+//	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
 	/* Disable GPIOs clock */
-	__HAL_RCC_GPIOA_CLK_DISABLE();
+//	__HAL_RCC_GPIOA_CLK_DISABLE();
 	__HAL_RCC_GPIOB_CLK_DISABLE();
 	__HAL_RCC_GPIOC_CLK_DISABLE();
 	__HAL_RCC_GPIOH_CLK_DISABLE();
@@ -131,11 +131,11 @@ void Enter_Normal_Mode(void)
 {
 	if(MCU_Power_Mode != REGULAR_POWER_MODE)
 	{
-		BMS_Status_Error_LED_Toggle();
+		_50ms_Flag= false;
+		_100ms_Flag = false;
+		_1Sec_Flag = false;
 
 		BMS_Watchdog_Refresh();
-
-		_50ms_Flag= false;
 
 		MCU_Power_Mode = REGULAR_POWER_MODE;
 
@@ -174,7 +174,7 @@ void Enter_Normal_Mode(void)
 		BMS_ASIC_Init();
 
 		/* Initialize the communication between AP and BMS; Current version of BMS supports SMBUS protocol */
-		AP_COM_Init(AP_COM_SMBUS_MODE);
+//		AP_COM_Init(AP_COM_SMBUS_MODE);
 
 		/* Read the pack voltage to calculate the battery capacity used/remaining */
 		BMS_Read_Pack_Voltage();

@@ -113,7 +113,7 @@ uint8_t BMS_Log_Init()
  */
 uint8_t Create_Log_Summary_File()
 {
-	FRESULT Result;
+	FRESULT File_Result = -1;
 
 	/* Very first thing that should happen is checking the log summary file and initialize the variables
 	 * used for indexing */
@@ -122,17 +122,17 @@ uint8_t Create_Log_Summary_File()
 
 	/* Mount the drive; If there is an error while mounting the SD card return the error status
 	 * to the caller function*/
-	Result = f_mount(&FatFs, "0", 1);
-	if(Result != FR_OK)
+	File_Result = f_mount(&FatFs, "0", 1);
+	if(File_Result != FR_OK)
 	{
 		return RESULT_ERROR;
 	}
 
 	/* This will create the Log_Summary_File if it is not created previously; This will execute only
 	 * once in lifetime unless someone delete the Log_Summary_File */
-	Result = f_open(&Summary_File, "0:/Log_Summary_File.txt",FA_OPEN_EXISTING| FA_WRITE | FA_READ);
+	File_Result = f_open(&Summary_File, "0:/Log_Summary_File.txt",FA_OPEN_EXISTING| FA_WRITE | FA_READ);
 
-	if(Result == FR_NO_FILE)
+	if(File_Result == FR_NO_FILE)
 	{
 		uint8_t Total_Num_Files_String[] = "Total_Number_of_Files:0     *";
 		uint8_t Power_Up_Num_String[] = "Power Up Number:0     *";
@@ -165,11 +165,9 @@ uint8_t Create_Log_Summary_File()
 		return RESULT_OK;
 	}
 
-	uint8_t SD_Result = RESULT_OK;
-
 	/* Retrieve all the counts from Log_Summary_File */
-	SD_Result = Get_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX, &SD_Summary_Data.Power_Up_Number);
-	SD_Result = Get_Count_Log_Summary_File(TOTAL_FILE_COUNT_INDEX, &SD_Summary_Data.Total_Num_of_Files);
+	Get_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX, &SD_Summary_Data.Power_Up_Number);
+	Get_Count_Log_Summary_File(TOTAL_FILE_COUNT_INDEX, &SD_Summary_Data.Total_Num_of_Files);
 
 	/* If MCU is rebooted or Powered up again then update the counts in the Log_Summary_File */
 	if((Old_Power_Up_Num != SD_Summary_Data.Power_Up_Number) && New_File_Created == false)
@@ -180,14 +178,21 @@ uint8_t Create_Log_Summary_File()
 		Old_Power_Up_Num = SD_Summary_Data.Power_Up_Number;
 
 		/* Write the power up number to the SD card */
-		SD_Result = Write_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX,SD_Summary_Data.Power_Up_Number);
+		Write_Count_Log_Summary_File(POWER_UP_NUMBER_INDEX,SD_Summary_Data.Power_Up_Number);
 	}
 
 	/* Clear the buffer indices so that buffers can be filled with new data from start */
 	*String_Index = 0;
 	*Index_Counter= 0;
 
-	return SD_Result;
+	if(File_Result == FR_OK)
+	{
+		return RESULT_OK;
+	}
+	else
+	{
+		return RESULT_ERROR;
+	}
 }
 
 /**
@@ -319,7 +324,7 @@ uint8_t Create_BMS_Log_File()
 		File_Name[Lcl_Counter++] = 't';
 		File_Name[Lcl_Counter++] = '\0';
 
-//		BMS_Debug_COM_Write_Data(File_Name,Lcl_Counter);
+		BMS_Debug_COM_Write_Data(File_Name,Lcl_Counter);
 
 		/* Make sure file system is mounted before opening/writing the files */
 		if (f_mount(&FatFs, "0", 1) != FR_OK)
@@ -381,14 +386,14 @@ uint8_t Create_BMS_Log_File()
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,I2C_Error_Status,Loop_Rate,ISL_Restart_Count,");
 		*String_Index += sprintf(&String_Buffer[*String_Index],"Watchdog_Flag,AP_Status,MCU_Reset_Source,Sleep_Mode\r\n");
 
-//		while((*String_Index) != 1021)
-//		{
-//			String_Buffer[(*String_Index)++] = 'A';
-//		}
-//
-//		String_Buffer[(*String_Index)++] = ',';
-//		String_Buffer[(*String_Index)++] = '\r';
-//		String_Buffer[(*String_Index)++] = '\n';
+		while((*String_Index) != 1021)
+		{
+			String_Buffer[(*String_Index)++] = 'A';
+		}
+
+		String_Buffer[(*String_Index)++] = ',';
+		String_Buffer[(*String_Index)++] = '\r';
+		String_Buffer[(*String_Index)++] = '\n';
 
 		if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
 		{
@@ -400,6 +405,7 @@ uint8_t Create_BMS_Log_File()
 	}
 	else
 	{
+
 		/* If succeeds in opening the file then start writing data to it; FR_OK: Success, otherwise: Error
 		 * in opening the file */
 		/* This action of opening the file with FA_CREATE_ALWAYS,FA_CREATE_NEW or FA_OPEN_EXISITING depends
@@ -550,9 +556,6 @@ uint8_t Log_All_Data()
 	String_Buffer[(*String_Index)++] = '\r';
 	String_Buffer[(*String_Index)++] = '\n';
 
-//	uint8_t Buffer[20];
-//	uint16_t Len = sprintf(Buffer,"%d\r\n",*String_Index);
-//	BMS_Debug_COM_Write_Data(Buffer,Len);
 	/* Write all the variables stored in the buffer to the SD card */
 
 	if (f_write(&BMS_Log_File, String_Buffer, *String_Index, &BytesWritten) != FR_OK)
@@ -812,6 +815,8 @@ void Stop_Log()
 	f_write(&BMS_Log_File, GPS_Date_Time, (UINT)length, &BytesWritten);
 	f_close(&BMS_Log_File);
 	f_close(&Summary_File);
+
+	f_mount(0,"0",0);
 }
 
 /**

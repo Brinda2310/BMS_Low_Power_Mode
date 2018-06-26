@@ -81,26 +81,38 @@ void TIM2_PeriodElapsedCallback()
 		BMS_Watchdog_Refresh();
 	}
 
-	if(Global_5ms_Counter >= 10)
+	if(MCU_Power_Mode == REGULAR_POWER_MODE)
 	{
-		Global_5ms_Counter = 0;
-		Lcl_100ms_Count++;
-		/* This variable is used in the main loop for 20Hz tasks */
+		if(Global_5ms_Counter >= 10)
+		{
+			Global_5ms_Counter = 0;
+			Lcl_100ms_Count++;
+			/* This variable is used in the main loop for 20Hz tasks */
+			_50ms_Flag = true;
+		}
+
+		if(Lcl_100ms_Count >= 2)
+		{
+			Lcl_1Sec_Count++;
+			Lcl_100ms_Count = 0;
+			_100ms_Flag = true;
+		}
+
+		/* Count the 40ms durations to create one second delay and the same flag is used in main loop for 1Hz tasks */
+		if(Lcl_1Sec_Count>= 10)
+		{
+			_1Sec_Flag = true;
+			Lcl_1Sec_Count = 0;
+		}
+	}
+	else if (MCU_Power_Mode == LOW_POWER_MODE)
+	{
 		_50ms_Flag = true;
-	}
-
-	if(Lcl_100ms_Count >= 2)
-	{
-		Lcl_1Sec_Count++;
-		Lcl_100ms_Count = 0;
-		_100ms_Flag = true;
-	}
-
-	/* Count the 40ms durations to create one second delay and the same flag is used in main loop for 1Hz tasks */
-	if(Lcl_1Sec_Count>= 10)
-	{
-		_1Sec_Flag = true;
-		Lcl_1Sec_Count = 0;
+		if(Global_5ms_Counter >= 20)
+		{
+			_1Sec_Flag = true;
+			Global_5ms_Counter = 0;
+		}
 	}
 }
 
