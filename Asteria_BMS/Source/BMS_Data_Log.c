@@ -711,37 +711,37 @@ uint8_t BMS_Read_Configuration_File()
 						Last_Location = Lcl_Index;
 						Last_Location++;
 						Rx_Data = 0;
-						switch(Config_Param_Index)
-						{
-							case 0:
-								BMS_Debug_COM_Write_Data(Battery_Param.Installation_Date,Index);
-								break;
-							case 1:
-								BMS_Debug_COM_Write_Data(Battery_Param.Manufacturer_Name,Index);
-								break;
-							case 2:
-								BMS_Debug_COM_Write_Data(Battery_Param.Battery_Chemistry,Index);
-								break;
-							case 3:
-								BMS_Debug_COM_Write_Data(Battery_Param.Battery_ID,Index);
-								break;
-							case 4:
-								BMS_Debug_COM_Write_Data(Battery_Param.Battery_Capacity,Index);
-								break;
-							case 5:
-								BMS_Debug_COM_Write_Data(Battery_Param.Number_Of_Cells,Index);
-								break;
-							case 6:
-								BMS_Debug_COM_Write_Data(Battery_Param.Max_Cell_Volt,Index);
-								break;
-							case 7:
-								BMS_Debug_COM_Write_Data(Battery_Param.Min_Cell_Volt,Index);
-								break;
-							case 8:
-								BMS_Debug_COM_Write_Data(Battery_Param.Max_Pack_Cycles,Index);
-								break;
-						}
-						Delay_Millis(15);
+//						switch(Config_Param_Index)
+//						{
+//							case 0:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Installation_Date,Index);
+//								break;
+//							case 1:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Manufacturer_Name,Index);
+//								break;
+//							case 2:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Battery_Chemistry,Index);
+//								break;
+//							case 3:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Battery_ID,Index);
+//								break;
+//							case 4:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Battery_Capacity,Index);
+//								break;
+//							case 5:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Number_Of_Cells,Index);
+//								break;
+//							case 6:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Max_Cell_Volt,Index);
+//								break;
+//							case 7:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Min_Cell_Volt,Index);
+//								break;
+//							case 8:
+//								BMS_Debug_COM_Write_Data(Battery_Param.Max_Pack_Cycles,Index);
+//								break;
+//						}
+//						Delay_Millis(15);
 						Max_Characters_In_Line = MAX_CHARACTERS_IN_LINE;
 
 					}

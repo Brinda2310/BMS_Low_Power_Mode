@@ -891,7 +891,7 @@ uint8_t BMS_Configure_Parameters(void)
 	BMS_Set_Internal_OT_Threshold();
 	BMS_Disable_Cell_Balancing();
 	BMS_Set_Internal_OT_Recovery();
-	BMS_Config_Number_of_Cells(BATT_NUMBER_OF_CELLS,WRITE_REGISTER);
+	BMS_Config_Number_of_Cells(atoi((char*)Battery_Param.Number_Of_Cells),WRITE_REGISTER);
 
 	uint32_t *Temp_Data = (uint32_t*)&I2C_Error_Flag;
 	if(*Temp_Data == 0x00)
@@ -914,7 +914,7 @@ uint8_t BMS_Configure_Parameters(void)
  */
 uint8_t BMS_Read_Number_Of_Cells_Configuration()
 {
-	if(BMS_Config_Number_of_Cells(BATT_NUMBER_OF_CELLS,READ_REGISTER) != BATT_NUMBER_OF_CELLS)
+	if(BMS_Config_Number_of_Cells(atoi((char*)Battery_Param.Number_Of_Cells),READ_REGISTER) != atoi((char*)Battery_Param.Number_Of_Cells))
 	{
 		return RESULT_ERROR;
 	}
@@ -1083,7 +1083,7 @@ void BMS_Estimate_Initial_Capacity(void)
 {
 	float Batt_Volt_Per_Cell = 0, volt_z = 0, pow_volt_z = 0, Battery_Estimate = 0;
 
-	Batt_Volt_Per_Cell = Get_BMS_Pack_Voltage() / (float) BATT_NUMBER_OF_CELLS;
+	Batt_Volt_Per_Cell = Get_BMS_Pack_Voltage() / (float) atoi((char*)Battery_Param.Number_Of_Cells);
 
 	volt_z = (float) ((float) (Batt_Volt_Per_Cell - BATT_EST_Mu) / (float) BATT_EST_Sigma);
 

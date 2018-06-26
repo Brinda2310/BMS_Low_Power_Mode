@@ -152,6 +152,15 @@ int main(void)
 		BMS_Debug_COM_Write_Data("It is Watchdog Reset...!!!\r",27);
 	}
 
+	if(BMS_Read_Configuration_File() == RESULT_OK)
+	{
+		BMS_Debug_COM_Write_Data("Battery Config File Read Success...!!!\r",39);
+	}
+	else
+	{
+		BMS_Debug_COM_Write_Data("Battery Config File Read Failed...!!!\r",38);
+	}
+
 	/* Sets the parameters in the ISL94203 to raise the flag and log the same in SD card */
 	if(BMS_Configure_Parameters() != RESULT_OK)
 	{
@@ -168,15 +177,6 @@ int main(void)
 
 	/* Read the pack voltage to calculate the battery capacity used/remaining */
 	BMS_Read_Pack_Voltage();
-
-	if(BMS_Read_Configuration_File() == RESULT_OK)
-	{
-		BMS_Debug_COM_Write_Data("Battery Config File Read Success...!!!\r",39);
-	}
-	else
-	{
-		BMS_Debug_COM_Write_Data("Battery Config File Read Failed...!!!\r",38);
-	}
 
 	/* Create the LOG file on SD card by reading the count from log summary file */
 	BMS_Log_Init();

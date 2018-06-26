@@ -18,12 +18,12 @@
 #define EEPROM_WRITE_DELAY							30		/* Time gap between two successiveEEPROM writes */
 #define READ_WRITE_DELAY							5
 
-#define SLOPE_5X									0.07713f	/* Equation(slope M)coefficients derived from log analysis */
-#define SLOPE_50X									0.0831f
+#define SLOPE_5X										0.07713f	/* Equation(slope M)coefficients derived from log analysis */
+#define SLOPE_50X										0.0831f
 #define SLOPE_500X									0.0774f
 
 #define CONSTANT_5X									54.9544f	/* Equation (constant C) derived from log analysis */
-#define CONSTANT_50X								127.6836f
+#define CONSTANT_50X									127.6836f
 #define CONSTANT_500X								96.6649f
 
 /*
@@ -59,21 +59,21 @@
 #define OV_RECOVERY_ADDR							0x02
 #define UV_THROSHOLD_ADDR							0x04
 #define UV_RECOVERY_ADDR							0x06
-#define OV_LOCKOUT_THRESHOLD_ADDR					0x08
-#define UV_LOCKOUT_THRESHOLD_ADDR					0x0A
+#define OV_LOCKOUT_THRESHOLD_ADDR				0x08
+#define UV_LOCKOUT_THRESHOLD_ADDR				0x0A
 #define EOC_THRESHOLD_ADDR							0x0C
 #define OV_DELAY_TIMEOUT_ADDR						0x10
 #define UV_DELAY_TIMEOUT_ADDR						0x12
 #define OPEN_WIRING_TIMEOUT_ADDR					0x14
 
-#define INTERNAL_OT_THRESHOLD_ADDR					0x40
-#define INTERNAL_OT_RECOVERY_ADDR					0x42
+#define INTERNAL_OT_THRESHOLD_ADDR				0x40
+#define INTERNAL_OT_RECOVERY_ADDR				0x42
 #define NUMBER_OF_CELLS_ADDR						0x48
 
-#define DISABLE_CELL_BALANCE_ADDR					0x87
+#define DISABLE_CELL_BALANCE_ADDR				0x87
 
-#define USER_EEPROM_START_ADDR						0x50	/* ISL's user EEPROM start address */
-#define RAM_STATUS_REG_ADDR							0x80	/* ISL's RAM status flags address */
+#define USER_EEPROM_START_ADDR					0x50	/* ISL's user EEPROM start address */
+#define RAM_STATUS_REG_ADDR						0x80	/* ISL's RAM status flags address */
 #define PACK_CURRENT_ADDR							0x8E	/* ISL's pack current register address */
 #define CELL_VOLTAGE_ADDR							0x90	/* ISL's cell voltages register address */
 #define PACK_TEMPERATURE_ADDR						0xA0	/* ISL's internal temperature register address */
@@ -87,52 +87,39 @@
 #define IS_DISCHARGE_OVER_TEMP						(1 << 4)
 #define IS_DISCHARGE_UNDER_TEMP						(1 << 5)
 #define IS_CHARGE_OVER_TEMP							(1 << 6)
-#define IS_CHARGE_UNDER_TEMP						(1 << 7)
+#define IS_CHARGE_UNDER_TEMP							(1 << 7)
 
 /* RAM location 0x81 status flags */
-#define IS_INTERNAL_OVER_TEMP						(1 << 8)
+#define IS_INTERNAL_OVER_TEMP							(1 << 8)
 #define IS_CHARGE_OVER_CURRENT						(1 << 9)
 #define IS_DISCHARGE_OVER_CURRENT					(1 << 10)
 #define IS_DISHARGE_SHORT_CIRCUIT					(1 << 11)
-#define IS_CELL_FAIL								(1 << 12)
-#define IS_OPEN_WIRE								(1 << 13)
-#define IS_END_OF_CHARGE							(1 << 15)
+#define IS_CELL_FAIL										(1 << 12)
+#define IS_OPEN_WIRE										(1 << 13)
+#define IS_END_OF_CHARGE								(1 << 15)
 
 /* RAM location 0x82 status flags */
-#define IS_PACK_CHARGING							(1 << 18)
+#define IS_PACK_CHARGING								(1 << 18)
 #define IS_PACK_DISCHARGING							(1 << 19)
-#define IS_INTERNAL_SCAN							(1 << 22)
+#define IS_INTERNAL_SCAN								(1 << 22)
 
 /* RAM location 0x83 status flags */
 #define IS_CELL_BALANCE_OVER_T						(1 << 24)
 #define IS_CELL_BALANCE_UNDER_T						(1 << 25)
 #define IS_CELL_BALANCE_OVER_V						(1 << 26)
 #define IS_CELL_BALANCE_UNDER_V						(1 << 27)
-#define IS_ISL_IN_IDLE								(1 << 28)
-#define IS_ISL_IN_DOZE								(1 << 29)
-#define IS_ISL_IN_SLEEP								(1 << 30)
+#define IS_ISL_IN_IDLE									(1 << 28)
+#define IS_ISL_IN_DOZE									(1 << 29)
+#define IS_ISL_IN_SLEEP									(1 << 30)
 
-#define NUMBER_OF_CELLS								8		/* The number of cells the battery has */
+#define NUMBER_OF_CELLS									8				/* The number of cells the battery has */
 #define CELL_VOLTAGES_DATA_SIZE						(2*NUMBER_OF_CELLS)
-#define SENSE_RESISTOR_VALUE						1e-3	/* Current sense resistor value used in hardware */
-#define CURRENT_GAIN								5		/* Set the current gain as per sense resistor value */
+#define SENSE_RESISTOR_VALUE							1e-3			/* Current sense resistor value used in hardware */
 #define MINIMUM_CURRENT_CONSUMPTION					200.0f		/* If current consumption is less than 50mA
- 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	  for specific time then put the BMS to sleep */
-#define MAXIMUM_PACK_VOLTAGE						25.0f		/* Maximum value of pack voltage */
+ 	 	 	 	 	 	 	 	 	 	 	 	 	 	 	  	  	  	  	  	   for specific time then put the BMS to sleep */
+#define MAXIMUM_PACK_VOLTAGE							25.0f		/* Maximum value of pack voltage */
 #define CHARGE_CURRENT_CONSUMPTION					1000.0f
 #define DISCHARGE_CURRENT_CONSUMPTION				CHARGE_CURRENT_CONSUMPTION
-
-/* Battery Parameters to be logged in the SD card */
-#define LI_ION										1
-#define LI_POLYMER									2
-
-#define BATT_NUMBER_OF_CELLS						6
-#define BATT_MAH									BATTERY_CAPACITY
-#define BATT_CELL_VOLT_MAX							4.20f
-#define BATT_CELL_VOLT_MIN							3.60f
-#define BATTERY_TYPE								LI_POLYMER
-#define BATT_MAX_PACK_CYCLES						200
-
 
 /* Battery Configuration Parameters to be stored in ISL EEPROM */
 #define CELL_OVER_VOLTAGE_THR_VALUE					4.25f			// In Volt
@@ -141,16 +128,16 @@
 #define CELL_UV_RECOVERY_VALUE						3.60f			// In Volt
 #define CELL_OV_LOCKOUT_THR_VALUE					4.30f			// In Volt
 #define CELL_UV_LOCKOUT_THR_VALUE					2.50f			// In Volt
-#define CELL_EOC_THR_VALUE							4.20f			// In Volt
+#define CELL_EOC_THR_VALUE								4.20f			// In Volt
 #define INTERNAL_OVER_TEMP_THR_VALUE				65				// In Degrees
 #define INTERNAL_OT_RECOVERY_VALUE					50				// In Degrees
 #define OV_DELAY_TIMEOUT_VALUE						1				// In seconds
 #define	UV_DELAY_TIMEOUT_VALUE						1				// In seconds
 #define OPEN_WIRING_TIMEOUT_VALUE					20				// In Millis
 
-#define DELAY_TIMEOUT_MILLIS						0x04
-#define DELAY_TIMEOUT_SECONDS						0x08
-#define DELAY_TIMEOUT_MINUTES						0x0C
+#define DELAY_TIMEOUT_MILLIS							0x04
+#define DELAY_TIMEOUT_SECONDS							0x08
+#define DELAY_TIMEOUT_MINUTES							0x0C
 
 #define OPEN_WIRING_DELAY_TIMEOUT_MILLIS			0x02
 #define OPEN_WIRING_DELAY_TIMEOUT_MICROS			0x00
@@ -160,7 +147,7 @@
 #define OPEN_WIRING_TIMEOUT_RESOLUTION				OPEN_WIRING_DELAY_TIMEOUT_MILLIS
 
 
-#define CRITICAL_BATT_VOLTAGE						20.1f
+#define CRITICAL_BATT_VOLTAGE							20.1f
 
 /* Enums to define the write results */
 enum Write_Result
