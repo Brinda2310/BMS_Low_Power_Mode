@@ -43,7 +43,9 @@ const uint8_t BMS_Firmware_Version[3] =
 };
 
 /* Variable to keep the track of time elapsed when switch is pressed for short duration i.e. 2 seconds */
-uint32_t Switch_Press_Time_Count = 0;
+uint32_t Switch_Press_Time_Count = 0,Switch_Press_Count = 0,Switch_Release_Count = 0;;
+
+bool Switch_Press = false;
 
 /* Variable to keep the track of time when there is no current consumption so as to force the ISL to sleep */
 uint32_t BMS_Sleep_Time_Count = 0;
@@ -241,7 +243,12 @@ int main(void)
 			/* If switch is pressed then start counting the time (50ms is the tick period) */
 			if (BMS_Read_Switch_Status() == PRESSED)
 			{
+				/* This flag indicate the switch was pressed or not */
+				Switch_Press = true;
+
+				/* Variable used for SOC and SOH display timings */
 				Switch_Press_Time_Count++;
+
 				/* If switch press count is more than 500ms and less than 2 seconds then make SOC_Flag true to display
 				 * the SOC status on LEDs as soon as switch is released */
 				if (Switch_Press_Time_Count >= SHORT_PERIOD && Switch_Press_Time_Count <= LONG_PEROID)
@@ -276,6 +283,31 @@ int main(void)
 			}
 			else
 			{
+				/* This count is used to clear the switch press variables. 500ms(10 counts of 50ms) */
+				Switch_Release_Count++;
+
+				/* Increment the count if switch press happens and wait for second switch press */
+				if(Switch_Press == true)
+				{
+					Switch_Press_Count++;
+					Switch_Press = false;
+				}
+				/* If switch is pressed once and then released after some time that will increment the switch_press_count
+				 * to1 but if it is released immediately and if there is no any switch press within
+				 * 500ms(10 count) then clear the variables*/
+				if(Switch_Press_Count <= 1 && Switch_Release_Count >= 10)
+				{
+					Switch_Press_Count = 0;
+					Switch_Release_Count = 0;
+				}
+
+				/* Switch press happens twice within 500ms then only take the required action */
+				if(Switch_Press_Count >= 2)
+				{
+					Switch_Press_Count = 0;
+					BMS_Debug_COM_Write_Data("Pressed Twice\r",14);
+				}
+
 				/* If switch is immediately released then reset time count to zero */
 				Switch_Press_Time_Count = 0;
 
@@ -313,6 +345,7 @@ int main(void)
 					}
 				}
 			}
+
 			/* If switch is pressed for more than 500ms and less than 2 seconds then show the SOC status on LEDs*/
 			if(Display_SOC == true)
 			{
