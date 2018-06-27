@@ -1140,8 +1140,8 @@ void BMS_Estimate_Initial_Capacity(void)
 	}
 
 	/*	Calculate remaining battery capacity */
-//	BMS_Data.Pack_Capacity_Remaining = Battery_Estimate;//(float) ((float) (1.0 - (float) (BMS_Data.Pack_Capacity_Used	/ (float) (BATTERY_CAPACITY))) * 100);
-//	BMS_Data.Pack_Capacity_Remaining = Constrain(BMS_Data.Pack_Capacity_Remaining, 0, 100);
+	BMS_Data.Pack_Capacity_Remaining = Battery_Estimate;//(float) ((float) (1.0 - (float) (BMS_Data.Pack_Capacity_Used	/ (float) (BATTERY_CAPACITY))) * 100);
+	BMS_Data.Pack_Capacity_Remaining = Constrain(BMS_Data.Pack_Capacity_Remaining, 0, 100);
 
 }
 
@@ -1216,7 +1216,7 @@ void BMS_Estimate_Capacity_Used()
 	Previous_Amperes = Current_Amperes;
 	Previous_Time = Current_Time;
 
-	//BMS_Data.Pack_Capacity_Remaining = (float)(1 - (BMS_Data.Pack_Capacity_Used /(float)BATTERY_CAPACITY)) * 100;
+	BMS_Data.Pack_Capacity_Remaining = (float)(1 - (BMS_Data.Pack_Capacity_Used /(float)BATTERY_CAPACITY)) * 100;
 }
 
 /**

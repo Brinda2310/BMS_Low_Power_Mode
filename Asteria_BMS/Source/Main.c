@@ -121,11 +121,9 @@ int main(void)
 	/* At start debug functionality is enabled. This will be disabled for the stable
 	 * version of code */
 
-	BMS_SOH_SOC_LEDs_Init();
-
 	if(Debug_COM_Enable == false)
 	{
-//		BMS_SOH_SOC_LEDs_Init();
+		BMS_SOH_SOC_LEDs_Init();
 	}
 	else
 	{
@@ -259,23 +257,23 @@ int main(void)
 					SOC_Flag = true;
 				}
 
-//				/* If switch is pressed for more than 5 seconds then debug functionality will be toggled with SOH_SOC
-//				 * functionality. It will start displaying the data which is being sent over USART at 1Hz*/
-//				if (Switch_Press_Time_Count >= DEBUG_FUNCTION_ENABLE_PERIOD && Switch_Press_Time_Count <= FACTORY_DEFAULT_PEROID)
-//				{
-//					SOH_Flag = false;
-//					SOC_Flag = false;
-//					Debug_Mode_Function = true;
-//				}
-//				/* If external switch is pressed for more than 10 seconds then code is reseted to factory default setting */
-//				else if(Switch_Press_Time_Count > FACTORY_DEFAULT_PEROID)
-//				{
-//					NVIC_SystemReset();
-//				}
-//				else
-//				{
-//					Time_Count = 0;
-//				}
+				/* If switch is pressed for more than 5 seconds then debug functionality will be toggled with SOH_SOC
+				 * functionality. It will start displaying the data which is being sent over USART at 1Hz*/
+				if (Switch_Press_Time_Count >= DEBUG_FUNCTION_ENABLE_PERIOD && Switch_Press_Time_Count <= FACTORY_DEFAULT_PERIOD)
+				{
+					SOH_Flag = false;
+					SOC_Flag = false;
+					Debug_Mode_Function = true;
+				}
+				/* If external switch is pressed for more than 10 seconds then code is reseted to factory default setting */
+				if(Switch_Press_Time_Count > FACTORY_DEFAULT_PERIOD)
+				{
+					NVIC_SystemReset();
+				}
+				else
+				{
+					Time_Count = 0;
+				}
 			}
 			else
 			{

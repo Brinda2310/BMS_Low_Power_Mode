@@ -8,7 +8,7 @@
 #include <BMS_Serial_Communication.h>
 #include <BMS_Timing.h>
 
-bool Debug_COM_Enable = true;
+bool Debug_COM_Enable = false;
 
 /**
  * @brief  Function to initialize debug USART to 9600 baud rate
