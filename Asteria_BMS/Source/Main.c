@@ -120,9 +120,12 @@ int main(void)
 
 	/* At start debug functionality is enabled. This will be disabled for the stable
 	 * version of code */
+
+	BMS_SOH_SOC_LEDs_Init();
+
 	if(Debug_COM_Enable == false)
 	{
-		BMS_SOH_SOC_LEDs_Init();
+//		BMS_SOH_SOC_LEDs_Init();
 	}
 	else
 	{
