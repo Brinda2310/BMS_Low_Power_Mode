@@ -430,7 +430,7 @@ int main(void)
 					BMS_Debug_COM_Write_Data("MCU Went to sleep\r",18);
 					/* Configures the external trigger events which will wake up the MCU and
 					 * then goes to sleep/low power mode */
-//					Enter_LP_Mode();
+					Enter_LP_Mode();
 				}
 			}
 			/* If BMS IC is not in sleep mode then always reset the timer count to zero so as to get

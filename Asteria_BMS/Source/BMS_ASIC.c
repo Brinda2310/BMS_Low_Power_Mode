@@ -129,6 +129,24 @@ static void BMS_Set_Status_Flags(uint32_t Flags)
 		Status_Flag.BMS_In_Sleep = NO;
 	}
 
+	if(Flags & IS_ISL_IN_IDLE)
+	{
+		Status_Flag.BMS_In_Idle = YES;
+	}
+	else
+	{
+		Status_Flag.BMS_In_Idle = NO;
+	}
+
+	if(Flags & IS_ISL_IN_DOZE)
+	{
+		Status_Flag.BMS_In_Doze = YES;
+	}
+	else
+	{
+		Status_Flag.BMS_In_Doze = NO;
+	}
+
 	if(Flags & IS_PACK_DISCHARGING)
 	{
 		BMS_Data.Charging_Discharging_Status = DISCHARGING;
@@ -149,6 +167,7 @@ static void BMS_Set_Status_Flags(uint32_t Flags)
 	{
 		Status_Flag.Pack_Charging = NO;
 	}
+
 	if(Flags & IS_INTERNAL_SCAN)
 	{
 		Status_Flag.Internal_Scan_Progress = NO;
