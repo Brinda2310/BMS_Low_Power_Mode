@@ -561,7 +561,7 @@ int main(void)
 				if(RecData == 'S')
 				{
 					BMS_Data.Pack_Voltage = 19.8;
-					RecData = 0;
+//					RecData = 0;
 				}
 
 				if(BMS_Check_Critical_Voltage() == BATT_CRITICAL_LEVEL_REACHED)
@@ -572,7 +572,7 @@ int main(void)
 						Sleep_Mode_Entered = true;
 						Log_All_Data();
 						Delay_Millis(10);
-//						MCU_Enter_Sleep_Mode();
+						Enter_LP_Mode();
 					}
 				}
 				else
