@@ -32,8 +32,8 @@
 
 #define TEST_DEBUG_WATCHDOG_RESET_TIME							3100
 
-#define _2_SECONDS_TIME												20		/* Time for which SOC to be shown (20 * 100ms) */
-#define _1_SECONDS_TIME												(_2_SECONDS_TIME/2)
+#define _3_SECONDS_TIME												NORMAL_MODE_3_SECONDS		/* Time for which SOC to be shown (20 * 100ms) */
+#define _1_SECONDS_TIME												NORMAL_MODE_1_SECONDS
 
 const uint8_t BMS_Firmware_Version[3] =
 {
@@ -260,29 +260,29 @@ int main(void)
 				}
 				/* If switch press count is more than 2 seconds then make SOH_Flag variable true to display the
 				 * SOH status on LEDs as soon as switch is released */
-				if (Switch_Press_Time_Count >= LONG_PEROID)
+				if (Switch_Press_Time_Count > LONG_PEROID)
 				{
 					SOH_Flag = true;
 					SOC_Flag = false;
 				}
 
-				/* If switch is pressed for more than 5 seconds then debug functionality will be toggled with SOH_SOC
-				 * functionality. It will start displaying the data which is being sent over USART at 1Hz*/
-				if (Switch_Press_Time_Count >= DEBUG_FUNCTION_ENABLE_PERIOD && Switch_Press_Time_Count <= FACTORY_DEFAULT_PEROID)
-				{
-					SOH_Flag = false;
-					SOC_Flag = false;
-					Debug_Mode_Function = true;
-				}
-				/* If external switch is pressed for more than 10 seconds then code is reseted to factory default setting */
-				else if(Switch_Press_Time_Count > FACTORY_DEFAULT_PEROID)
-				{
-					NVIC_SystemReset();
-				}
-				else
-				{
-					Time_Count = 0;
-				}
+//				/* If switch is pressed for more than 5 seconds then debug functionality will be toggled with SOH_SOC
+//				 * functionality. It will start displaying the data which is being sent over USART at 1Hz*/
+//				if (Switch_Press_Time_Count >= DEBUG_FUNCTION_ENABLE_PERIOD && Switch_Press_Time_Count <= FACTORY_DEFAULT_PEROID)
+//				{
+//					SOH_Flag = false;
+//					SOC_Flag = false;
+//					Debug_Mode_Function = true;
+//				}
+//				/* If external switch is pressed for more than 10 seconds then code is reseted to factory default setting */
+//				else if(Switch_Press_Time_Count > FACTORY_DEFAULT_PEROID)
+//				{
+//					NVIC_SystemReset();
+//				}
+//				else
+//				{
+//					Time_Count = 0;
+//				}
 			}
 			else
 			{
@@ -352,7 +352,7 @@ int main(void)
 			/* If switch is pressed for more than 500ms and less than 2 seconds then show the SOC status on LEDs*/
 			if(Display_SOC == true)
 			{
-				if(Time_Count <= _2_SECONDS_TIME)
+				if(Time_Count <= _3_SECONDS_TIME)
 				{
 					Time_Count++;
 					BMS_Show_LED_Pattern(SOC,SHOW_STATUS);
@@ -367,7 +367,7 @@ int main(void)
 			/* If switch is pressed for more than 2 seconds and less than 5 seconds then show the SOH status on LEDs*/
 			else if (Display_SOH == true)
 			{
-				if (Time_Count <= _2_SECONDS_TIME)
+				if (Time_Count <= _3_SECONDS_TIME)
 				{
 					Time_Count++;
 					BMS_Show_LED_Pattern(SOH, SHOW_STATUS);
@@ -610,7 +610,7 @@ int main(void)
 					}
 					else
 					{
-						BMS_Status_Error_LED_Toggle();
+//						BMS_Status_Error_LED_Toggle();
 						Log_Status = true;
 					}
 				}
@@ -641,6 +641,8 @@ int main(void)
 		 * (inputs are provided as per the test cases) */
 		if(_1Sec_Flag == true)
 		{
+			static bool Display_Data = false;
+
 			memset(Buffer,0,sizeof(Buffer));
 			uint8_t Length = 0;
 
@@ -649,18 +651,21 @@ int main(void)
 			{
 #ifdef TEST_DEBUG_GPS_INFO
 				case 'A':
+					BMS_Data.Pack_Capacity_Remaining = 12.0;
 					Length += RTC_TimeShow((uint8_t*)&Buffer[Length],DATE_TIME_COMBINED);
 					break;
 #endif
 
 #ifdef TEST_DEBUG_START_TIME
 				case 'B':
+					BMS_Data.Pack_Capacity_Remaining = 18.0;
 					Length += sprintf(&Buffer[Length],"MCU Time:%d\r",(int)Get_System_Time_Millis());
 					break;
 #endif
 
 #ifdef TEST_DEBUG_ALL_PACK_DATA
 				case 'C':
+					BMS_Data.Pack_Capacity_Remaining = 24.0;
 					Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
 					Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
 					Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
@@ -670,6 +675,7 @@ int main(void)
 
 #ifdef TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE
 				case 'D':
+					BMS_Data.Pack_Capacity_Remaining = 31.0;
 					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%0.3fmA\r",Get_BMS_Pack_Current_Adj());
 					Length += sprintf(&Buffer[Length],"C_D_Current :%0.4fmA",C_D_Accumulated_mAH);
 					if(Get_BMS_Charge_Discharge_Status() == CHARGING)
@@ -694,6 +700,7 @@ int main(void)
 
 #ifdef TEST_DEBUG_C_D_TOTAL_PACK_CYLES
 				case 'F':
+					BMS_Data.Pack_Capacity_Remaining = 42.0;
 					Length += sprintf(&Buffer[Length],"Charge Cycles :%d\r",(int)BMS_Data.Pack_Charge_Cycles);
 					Length += sprintf(&Buffer[Length],"Discharge Cycles :%d\r",(int)BMS_Data.Pack_Discharge_Cycles);
 					Length += sprintf(&Buffer[Length],"Total Cycles :%d\r",(int)Get_BMS_Total_Pack_Cycles());
@@ -702,6 +709,7 @@ int main(void)
 
 #ifdef TEST_DEBUG_HEALTH_I2C_ERROR
 				case 'G':
+					BMS_Data.Pack_Capacity_Remaining = 53.0;
 					Length += sprintf(&Buffer[Length],"Health Info :%s\r",BMS_Data.Health_Status_Info);
 					Length += sprintf(&Buffer[Length],"I2C Error Info :%s\r",BMS_Data.I2C_Error_Info);
 					break;
@@ -709,6 +717,7 @@ int main(void)
 
 #ifdef TEST_DEBUG_TEMPERATURE
 				case 'H':
+					BMS_Data.Pack_Capacity_Remaining = 59.0;
 					Length += sprintf(&Buffer[Length],"Pack_Temp :%f degrees\r",BMS_Data.Pack_Temperature_Degrees);
 					break;
 #endif
@@ -760,6 +769,7 @@ int main(void)
 					break;
 
 				case '?':
+					BMS_Data.Pack_Capacity_Remaining = 78.0;
 					AP_COM_Init(AP_COM_SMBUS_MODE);
 					break;
 
@@ -771,6 +781,12 @@ int main(void)
 				case '$':
 					Enter_Normal_Mode();
 					RecData = 0;
+					break;
+				case '~':
+					Display_Data = true;
+					break;
+				case '*':
+					Display_Data = false;
 					break;
 #endif
 			}
@@ -793,7 +809,11 @@ int main(void)
 			{
 				Length += sprintf(&Buffer[Length],"Low Power Mode\r\r");
 			}
-			BMS_Debug_COM_Write_Data(Buffer, Length);
+
+			if(Display_Data == false)
+			{
+				BMS_Debug_COM_Write_Data(Buffer, Length);
+			}
 			_1Sec_Flag = false;
 		}
 	}
