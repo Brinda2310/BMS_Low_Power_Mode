@@ -258,13 +258,6 @@ int main(void)
 				{
 					SOC_Flag = true;
 				}
-				/* If switch press count is more than 2 seconds then make SOH_Flag variable true to display the
-				 * SOH status on LEDs as soon as switch is released */
-				if (Switch_Press_Time_Count > LONG_PEROID)
-				{
-					SOH_Flag = true;
-					SOC_Flag = false;
-				}
 
 //				/* If switch is pressed for more than 5 seconds then debug functionality will be toggled with SOH_SOC
 //				 * functionality. It will start displaying the data which is being sent over USART at 1Hz*/
@@ -308,6 +301,8 @@ int main(void)
 				if(Switch_Press_Count >= 2)
 				{
 					Switch_Press_Count = 0;
+					SOH_Flag = true;
+					SOC_Flag = false;
 					BMS_Debug_COM_Write_Data("Pressed Twice\r",14);
 				}
 
@@ -652,6 +647,7 @@ int main(void)
 #ifdef TEST_DEBUG_GPS_INFO
 				case 'A':
 					BMS_Data.Pack_Capacity_Remaining = 12.0;
+					BMS_Data.Pack_Charge_Cycles = 15;
 					Length += RTC_TimeShow((uint8_t*)&Buffer[Length],DATE_TIME_COMBINED);
 					break;
 #endif
@@ -659,6 +655,7 @@ int main(void)
 #ifdef TEST_DEBUG_START_TIME
 				case 'B':
 					BMS_Data.Pack_Capacity_Remaining = 18.0;
+					BMS_Data.Pack_Charge_Cycles = 22;
 					Length += sprintf(&Buffer[Length],"MCU Time:%d\r",(int)Get_System_Time_Millis());
 					break;
 #endif
@@ -666,6 +663,7 @@ int main(void)
 #ifdef TEST_DEBUG_ALL_PACK_DATA
 				case 'C':
 					BMS_Data.Pack_Capacity_Remaining = 24.0;
+					BMS_Data.Pack_Charge_Cycles = 41;
 					Length += sprintf(&Buffer[Length],"C1 = %0.2fV\rC2 = %0.2fV\rC3 = %0.2fV\r",Get_Cell1_Voltage(),Get_Cell2_Voltage(),Get_Cell3_Voltage());
 					Length += sprintf(&Buffer[Length],"C4 = %0.2fV\rC5 = %0.2fV\rC6 = %0.2fV\r",Get_Cell6_Voltage(),Get_Cell7_Voltage(),Get_Cell8_Voltage());
 					Length += sprintf(&Buffer[Length],"Pack Volt = %0.3fV\r",Get_BMS_Pack_Voltage());
@@ -676,6 +674,7 @@ int main(void)
 #ifdef TEST_DEBUG_PACK_CURRENT_ADJ_CD_RATE
 				case 'D':
 					BMS_Data.Pack_Capacity_Remaining = 31.0;
+					BMS_Data.Pack_Charge_Cycles = 58;
 					Length += sprintf(&Buffer[Length],"Pack_Curr_Adj :%0.3fmA\r",Get_BMS_Pack_Current_Adj());
 					Length += sprintf(&Buffer[Length],"C_D_Current :%0.4fmA",C_D_Accumulated_mAH);
 					if(Get_BMS_Charge_Discharge_Status() == CHARGING)
@@ -692,6 +691,7 @@ int main(void)
 
 #ifdef TEST_DEBUG_CAPACITY_USED_REMAINING_TOTAL
 				case 'E':
+					BMS_Data.Pack_Charge_Cycles = 75;
 					Length += sprintf(&Buffer[Length],"Total Capacity :%0.2fmA\r",(float)BATTERY_CAPACITY);
 					Length += sprintf(&Buffer[Length],"Capacity Used :%0.3fmAH\r",Get_BMS_Capacity_Used());
 					Length += sprintf(&Buffer[Length],"Capacity Remaining :%0.3f%c\r",Get_BMS_Capacity_Remaining(),0x25);
@@ -710,6 +710,7 @@ int main(void)
 #ifdef TEST_DEBUG_HEALTH_I2C_ERROR
 				case 'G':
 					BMS_Data.Pack_Capacity_Remaining = 53.0;
+					BMS_Data.Pack_Charge_Cycles = 121;
 					Length += sprintf(&Buffer[Length],"Health Info :%s\r",BMS_Data.Health_Status_Info);
 					Length += sprintf(&Buffer[Length],"I2C Error Info :%s\r",BMS_Data.I2C_Error_Info);
 					break;
@@ -718,19 +719,22 @@ int main(void)
 #ifdef TEST_DEBUG_TEMPERATURE
 				case 'H':
 					BMS_Data.Pack_Capacity_Remaining = 59.0;
+					BMS_Data.Pack_Charge_Cycles = 139;
 					Length += sprintf(&Buffer[Length],"Pack_Temp :%f degrees\r",BMS_Data.Pack_Temperature_Degrees);
 					break;
 #endif
 
 #ifdef TEST_DEBUG_WATCHDOG_TEST
 				case 'I':
-					Delay_Millis(TEST_DEBUG_WATCHDOG_RESET_TIME);
+					BMS_Data.Pack_Charge_Cycles = 145;
+//					Delay_Millis(TEST_DEBUG_WATCHDOG_RESET_TIME);
 					break;
 #endif
 
 #ifdef TEST_DEBUG_CODE_RESET
 				case 'J':
-					NVIC_SystemReset();
+					BMS_Data.Pack_Charge_Cycles = 161;
+//					NVIC_SystemReset();
 					break;
 #endif
 
@@ -752,18 +756,21 @@ int main(void)
 
 #ifdef TEST_DEBUG_LOG_FILE_INFO
 				case 'N':
+					BMS_Data.Pack_Charge_Cycles = 170;
 					Length += sprintf(&Buffer[Length],"Power Num :%d\r",SD_Summary_Data.Power_Up_Number);
 					Length += sprintf(&Buffer[Length],"File Num :%d\r",SD_Summary_Data.Total_Num_of_Files);
 					break;
 #endif
 #ifdef TEST_DEBUG_STOP_LOG
 				case 'O':
-					Stop_Log();
+					BMS_Data.Pack_Charge_Cycles = 185;
+//					Stop_Log();
 					Log_Stopped = true;
 					RecData = 0;
 					break;
 				case 'P':
-					BMS_Log_Init();
+					BMS_Data.Pack_Charge_Cycles = 205;
+//					BMS_Log_Init();
 					Log_Stopped = false;
 					RecData = 0;
 					break;

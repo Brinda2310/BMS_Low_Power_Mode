@@ -1541,3 +1541,25 @@ float Get_BMS_Charge_Discharge_Rate()
 	return BMS_Data.Pack_Charge_Discharge_Rate;
 }
 
+/**
+ * @brief  Function to return number of charge cycles that pack has been through
+ * @param  None
+ * @retval Pack charge cycles
+ */
+uint8_t BMS_Get_Num_Charge_Cycles(void)
+{
+	return BMS_Data.Pack_Charge_Cycles;
+}
+
+/**
+ * @brief  Function to return number of discharge cycles that pack has been through
+ * @param  None
+ * @retval C_D rate
+ */
+uint8_t BMS_Get_Num_Discharge_Cycles(void)
+{
+	return BMS_Data.Pack_Discharge_Cycles;
+}
+
+
+

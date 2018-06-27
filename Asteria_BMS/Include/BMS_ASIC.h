@@ -336,6 +336,8 @@ void BMS_ASIC_Init();
 void BMS_Force_Sleep();
 void BMS_Set_Current_Gain(uint16_t Gain_Setting);
 void BMS_Update_Pack_Cycles(void);
+uint8_t BMS_Get_Num_Charge_Cycles(void);
+uint8_t BMS_Get_Num_Discharge_Cycles(void);
 void BMS_Read_RAM_Status_Register(void);
 void BMS_Read_Cell_Voltages(void);
 void BMS_Estimate_Initial_Capacity(void);

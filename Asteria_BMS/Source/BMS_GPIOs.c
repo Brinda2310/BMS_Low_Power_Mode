@@ -186,29 +186,120 @@ void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 	}
 	else if (Pattern_Type == SOH && Status == SHOW_STATUS)
 	{
-		uint8_t Num_Cycles = Get_BMS_Total_Pack_Cycles();
+		uint8_t Num_Cycles = BMS_Get_Num_Charge_Cycles();
 
-		if( Num_Cycles > 0 && Num_Cycles <= 15)
+		if(Num_Cycles < 20)
 		{
-			GPIO_Write(LED1_PORT, LED_1, PIN_TOGGLE);
+			GPIO_Write(LED4_PORT,LED_4,PIN_LOW);
 		}
-		else if (Num_Cycles > 15 && Num_Cycles <= 30)
+		else if (Num_Cycles >= 20 && Num_Cycles <40)
 		{
-			GPIO_Write(LED1_PORT, LED_1, PIN_TOGGLE);
-			GPIO_Write(LED2_PORT, LED_2, PIN_TOGGLE);
+			if(Blink_Count >= 10)
+			{
+				GPIO_Write(LED4_PORT, LED_4, PIN_TOGGLE);
+				Blink_Count = 0;
+			}
+			else
+			{
+				Blink_Count++;
+			}
 		}
-		else if (Num_Cycles > 30 && Num_Cycles <= 45)
+		else if (Num_Cycles >= 40)
 		{
-			GPIO_Write(LED1_PORT, LED_1, PIN_TOGGLE);
-			GPIO_Write(LED2_PORT, LED_2, PIN_TOGGLE);
-			GPIO_Write(LED3_PORT, LED_3, PIN_TOGGLE);
+			GPIO_Write(LED4_PORT,LED_4,PIN_HIGH);
 		}
-		else
+
+
+		if(Num_Cycles < 60)
 		{
-			GPIO_Write(LED1_PORT, LED_1, PIN_TOGGLE);
-			GPIO_Write(LED2_PORT, LED_2, PIN_TOGGLE);
-			GPIO_Write(LED3_PORT, LED_3, PIN_TOGGLE);
-			GPIO_Write(LED4_PORT, LED_4, PIN_TOGGLE);
+			GPIO_Write(LED1_PORT,LED_1,PIN_LOW);
+		}
+		else if (Num_Cycles >= 60 && Num_Cycles < 80)
+		{
+			if(Blink_Count >= 10)
+			{
+				GPIO_Write(LED1_PORT, LED_1, PIN_TOGGLE);
+				Blink_Count = 0;
+			}
+			else
+			{
+				Blink_Count++;
+			}
+		}
+		else if (Num_Cycles >= 80)
+		{
+			GPIO_Write(LED1_PORT,LED_1,PIN_HIGH);
+		}
+
+		if(Num_Cycles < 100)
+		{
+			GPIO_Write(LED5_PORT,LED_5,PIN_LOW);
+		}
+		else if (Num_Cycles >= 100 && Num_Cycles < 120)
+		{
+			if(Blink_Count >= 10)
+			{
+				GPIO_Write(LED5_PORT, LED_5, PIN_TOGGLE);
+				Blink_Count = 0;
+			}
+			else
+			{
+				Blink_Count++;
+			}
+		}
+		else if (Num_Cycles >= 120)
+		{
+			GPIO_Write(LED5_PORT,LED_5,PIN_HIGH);
+		}
+
+		if(Num_Cycles < 140)
+		{
+			GPIO_Write(LED6_PORT,LED_6,PIN_LOW);
+		}
+		else if (Num_Cycles >= 140 && Num_Cycles < 160)
+		{
+			if(Blink_Count >= 10)
+			{
+				GPIO_Write(LED6_PORT, LED_6, PIN_TOGGLE);
+				Blink_Count = 0;
+			}
+			else
+			{
+				Blink_Count++;
+			}
+		}
+		else if (Num_Cycles >= 160)
+		{
+			GPIO_Write(LED6_PORT,LED_6,PIN_HIGH);
+		}
+
+		if(Num_Cycles < 180)
+		{
+			GPIO_Write(LED6_PORT,LED_6,PIN_LOW);
+		}
+		else if (Num_Cycles >= 180 && Num_Cycles < 200)
+		{
+			if(Blink_Count >= 10)
+			{
+				GPIO_Write(LED6_PORT, LED_6, PIN_TOGGLE);
+				Blink_Count = 0;
+			}
+			else
+			{
+				Blink_Count++;
+			}
+		}
+		else if (Num_Cycles >= 200)
+		{
+			if(Blink_Count >= 2)
+			{
+				Blink_Count = 0;
+				GPIO_Write(LED6_PORT,LED_6,PIN_TOGGLE);
+			}
+			else
+			{
+				Blink_Count++;
+			}
 		}
 	}
 
