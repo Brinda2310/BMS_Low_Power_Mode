@@ -394,11 +394,11 @@ uint8_t Create_BMS_Log_File()
 
 		*String_Index += sprintf(&String_Buffer[*String_Index],"\r\n");
 
-		*String_Index += sprintf(&String_Buffer[*String_Index],"GPS_Date,RTC_Time,Start_Time,End_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,Capacity_Remaining,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Used,Pack_Cyles_Used,Current_Gain,Battery_C_D_Rate,mAH_IN_OUT,C_D_Status,Temperature,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Final_Pack_Voltage,Flight_Time,Health_Error_Status,I2C_Error_Status,Loop_Rate,ISL_Restart_Count,");
-		*String_Index += sprintf(&String_Buffer[*String_Index],"Watchdog_Flag,AP_Status,MCU_Reset_Source,Sleep_Mode\r\n");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"RTC_Time,MCU_Time,C1_Volt,C2_Volt,C3_Volt,C4_Volt,C5_Volt,C6_Volt,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Pack_Voltage,Accumulated_Pack_Voltage,Pack_Current,Pack_Current_Adjusted,Total_Capacity,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"Capacity_Remaining,Capacity_Used,Pack_Charge_Cycles,Current_Gain,Battery_C_D_Rate,mAH_IN_OUT,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"C_D_Indicator,Pack_Temperature,Health_Error_Status,I2C_Error_Status,Loop_Rate,");
+		*String_Index += sprintf(&String_Buffer[*String_Index],"ASIC_Restart_Count,Watchdog_Flag,AP_Status,MCU_Reset_Source,Sleep_Mode_Status\r\n");
 
 		while((*String_Index) != 1021)
 		{
@@ -464,16 +464,10 @@ uint8_t Log_All_Data()
 	*String_Index = 0;
 	memset(String_Buffer,0,sizeof(String_Buffer));
 
-	RTC_Data_Size = RTC_TimeShow((uint8_t*)&String_Buffer[*String_Index],DATE);
+	RTC_Data_Size = RTC_TimeShow((uint8_t*)&String_Buffer[*String_Index],TIME);		// RTC Time
 	*String_Index += RTC_Data_Size;
 
-	RTC_Data_Size = RTC_TimeShow((uint8_t*)&String_Buffer[*String_Index],TIME);
-	*String_Index += RTC_Data_Size;
-
-	Long_Values[(*Index_Counter)++] = Get_System_Time_Millis();								// Start Time
-	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
-
-	Long_Values[(*Index_Counter)++] = Get_System_Time_Millis();								// End Time
+	Long_Values[(*Index_Counter)++] = Get_System_Time_Millis();								// MCU Time
 	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_Cell1_Voltage();									// Cell1 Voltage
@@ -485,33 +479,29 @@ uint8_t Log_All_Data()
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();								// Pack Voltage from ISL
-	Float_Values[(*Index_Counter)++] = Get_BMS_Accumulated_Pack_Voltage();					// Accumulated Pack Voltage
+	Float_Values[(*Index_Counter)++] = Get_BMS_Accumulated_Pack_Voltage();				// Accumulated Pack Voltage
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
 	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current();								// Pack Current from ISL
-	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current_Adj();							// Accurate Pack Current
-	Float_Values[(*Index_Counter)++] = (float)BATTERY_CAPACITY;								// Total Pack Capacity
-	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Capacity_Remaining();					// Pack Capacity Remaining
+	Float_Values[(*Index_Counter)++] = 	Get_BMS_Pack_Current_Adj();						// Low Pass Filtered Pack Current
+	Float_Values[(*Index_Counter)++] = (float)atof(Battery_Param.Battery_Capacity);	// Total Pack Capacity
+	Float_Values[(*Index_Counter)++] = (float)Get_BMS_Capacity_Remaining();				// Remaining Pack Capacity
 	Float_Values[(*Index_Counter)++] = Get_BMS_Capacity_Used();								// Used Capacity
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
-	Int_Values[(*Index_Counter)++] = Get_BMS_Total_Pack_Cycles();							// Pack Cycles
-	Int_Values[(*Index_Counter)++] = Current_Gain;
+	Int_Values[(*Index_Counter)++] = Get_BMS_Num_Charge_Cycles();							// Number of Charge Cycles Pack has been through
+	Int_Values[(*Index_Counter)++] = Current_Gain;												// The Current gain set in the ISL ASIC
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
 
-	Float_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Rate();						// C/D rate in mAH
-	Float_Values[(*Index_Counter)++] = C_D_Accumulated_mAH;									// Charge/Discharge mAH
+	Float_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Rate();					// C/D rate in mAH
+	Float_Values[(*Index_Counter)++] = C_D_Accumulated_mAH;									// Total mAH going into the pack or taken out from the pack at that instant
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,FLOAT_DATA);
 
-	Char_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Status();					// Charge/Discharge Status
+	Char_Values[(*Index_Counter)++] = Get_BMS_Charge_Discharge_Status();					// Charge/Discharge Indicator
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
 	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Temperature();							// Pack Temperature
-	Float_Values[(*Index_Counter)++] = Get_BMS_Pack_Voltage();								// Final Pack Voltage read after charge/discharge cycle
 	log_sprintf(Float_Values,String_Buffer,Index_Counter,String_Index,SHORT_FLOAT_DATA);
-
-	Long_Values[(*Index_Counter)++] = 360;													// Flight Time
-	log_sprintf(Long_Values,String_Buffer,Index_Counter,String_Index,LONG_DATA);
 
 	uint32_t Error_Code = Error_Check_Data;
 	uint16_t Health_Data_Start_Index = *String_Index;
@@ -550,18 +540,18 @@ uint8_t Log_All_Data()
 	memcpy(BMS_Data.I2C_Error_Info,&String_Buffer[I2C_Error_Start_Index],32);
 	String_Buffer[(*String_Index)++] = ',';
 
-	Int_Values[(*Index_Counter)++] = Loop_Rate_Log_Counter;
+	Int_Values[(*Index_Counter)++] = Loop_Rate_Log_Counter;									// Loop rate at which main loop is running
+	Int_Values[(*Index_Counter)++] = ASIC_Restart_Count;										// Number of time the I2C communication has lost with the ISL ASIC
 	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,SHORT_INT_DATA);
 
-	Int_Values[(*Index_Counter)++] = ASIC_Restart_Count;
-	log_sprintf(Int_Values,String_Buffer,Index_Counter,String_Index,INT_DATA);
-
-	Char_Values[(*Index_Counter)++] = BMS_Watchdog_Enable;
-	Char_Values[(*Index_Counter)++] = AP_Stat_Data.bytes[0];
-	Char_Values[(*Index_Counter)++] = Reset_Source;
-	Char_Values[(*Index_Counter)++] = Sleep_Mode_Entered;
+	Char_Values[(*Index_Counter)++] = BMS_Watchdog_Enable;									// Watchdog timer enable/disable flag
+	Char_Values[(*Index_Counter)++] = AP_Stat_Data.bytes[0];									// AP Status received over the SMBUS
+	Char_Values[(*Index_Counter)++] = Reset_Source;												// Last reset source of the MCU
+	Char_Values[(*Index_Counter)++] = Sleep_Mode_Entered;										// Flag to tell at what time MCU entered the sleep mode
 	log_sprintf(Char_Values,String_Buffer,Index_Counter,String_Index,CHAR_DATA);
 
+	/* Fill the buffer with random character till data size reaches to 509 (excluding ",\r\n" characters)
+	 * so as to improve the date write time of SD card */
 	while(*String_Index != 509)
 	{
 		String_Buffer[(*String_Index)++] = 'A';

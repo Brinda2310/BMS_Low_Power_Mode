@@ -336,8 +336,6 @@ void BMS_ASIC_Init();
 void BMS_Force_Sleep();
 void BMS_Set_Current_Gain(uint16_t Gain_Setting);
 void BMS_Update_Pack_Cycles(void);
-uint8_t BMS_Get_Num_Charge_Cycles(void);
-uint8_t BMS_Get_Num_Discharge_Cycles(void);
 void BMS_Read_RAM_Status_Register(void);
 void BMS_Read_Cell_Voltages(void);
 void BMS_Estimate_Initial_Capacity(void);
@@ -370,6 +368,9 @@ float Get_BMS_Pack_Current(void);
 float Get_BMS_Pack_Temperature(void);
 float Get_BMS_Charge_Discharge_Rate();
 uint32_t Get_BMS_Total_Pack_Cycles();
+uint8_t Get_BMS_Num_Charge_Cycles(void);
+uint8_t Get_BMS_Num_Discharge_Cycles(void);
+
 
 
 /* Values to be loaded into the ISL for parameters

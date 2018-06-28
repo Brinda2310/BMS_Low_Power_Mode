@@ -186,7 +186,7 @@ void BMS_Show_LED_Pattern(uint8_t Pattern_Type,uint8_t Status)
 	}
 	else if (Pattern_Type == SOH && Status == SHOW_STATUS)
 	{
-		uint8_t Num_Cycles = BMS_Get_Num_Charge_Cycles();
+		uint8_t Num_Cycles = Get_BMS_Num_Charge_Cycles();
 
 		if(Num_Cycles < 20)
 		{
