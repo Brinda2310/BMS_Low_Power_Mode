@@ -11,6 +11,8 @@
 #include <I2C_API.h>
 #include <AP_Communication.h>
 
+extern bool flag,flag_1;
+
 #define BMS_ADDRESS									0x50	/* ISL94203 slave address */
 #define BMS_I2C										I2C_1	/* I2C bus of MCU to be used for ISL */
 #define I2C_OWN_ADDRESS								0x0F	/* This is the MCU's own address */
@@ -122,22 +124,22 @@
 #define DISCHARGE_CURRENT_CONSUMPTION				CHARGE_CURRENT_CONSUMPTION
 
 /* Battery Configuration Parameters to be stored in ISL EEPROM */
-#define CELL_OVER_VOLTAGE_THR_VALUE					4.25f			// In Volt
-#define CELL_OV_RECOVERY_VALUE						4.15f			// In Volt
-#define CELL_UNDER_VOLTAGE_THR_VALUE				3.50f			// In Volt
+#define CELL_OVER_VOLTAGE_THR_VALUE					2.33f			// In Volt
+#define CELL_OV_RECOVERY_VALUE						1.15f			// In Volt
+#define CELL_UNDER_VOLTAGE_THR_VALUE				2.50f			// In Volt
 #define CELL_UV_RECOVERY_VALUE						3.60f			// In Volt
-#define CELL_OV_LOCKOUT_THR_VALUE					4.30f			// In Volt
+#define CELL_OV_LOCKOUT_THR_VALUE					1.30f			// In Volt
 #define CELL_UV_LOCKOUT_THR_VALUE					2.50f			// In Volt
-#define CELL_EOC_THR_VALUE								4.20f			// In Volt
+#define CELL_EOC_THR_VALUE							3.20f			// In Volt
 #define INTERNAL_OVER_TEMP_THR_VALUE				65				// In Degrees
 #define INTERNAL_OT_RECOVERY_VALUE					50				// In Degrees
 #define OV_DELAY_TIMEOUT_VALUE						1				// In seconds
 #define	UV_DELAY_TIMEOUT_VALUE						1				// In seconds
 #define OPEN_WIRING_TIMEOUT_VALUE					20				// In Millis
 
-#define DELAY_TIMEOUT_MILLIS							0x04
-#define DELAY_TIMEOUT_SECONDS							0x08
-#define DELAY_TIMEOUT_MINUTES							0x0C
+#define DELAY_TIMEOUT_MILLIS						0x04
+#define DELAY_TIMEOUT_SECONDS						0x08
+#define DELAY_TIMEOUT_MINUTES						0x0C
 
 #define OPEN_WIRING_DELAY_TIMEOUT_MILLIS			0x02
 #define OPEN_WIRING_DELAY_TIMEOUT_MICROS			0x00

@@ -644,6 +644,14 @@ int main(void)
 			{
 #ifdef TEST_DEBUG_GPS_INFO
 				case 'A':
+					if(flag_1 == true)
+					{
+						BMS_Debug_COM_Write_Data("BMS Configuration Setting OK...!!!\r",35);
+					}
+					else
+					{
+						BMS_Debug_COM_Write_Data("BMS Configuration Setting Failed...!!!\r",40);
+					}
 					BMS_Data.Pack_Capacity_Remaining = 12.0;
 					BMS_Data.Pack_Charge_Cycles = 15;
 					Length += RTC_TimeShow((uint8_t*)&Buffer[Length],DATE_TIME_COMBINED);

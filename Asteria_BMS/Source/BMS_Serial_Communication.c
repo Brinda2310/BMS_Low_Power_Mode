@@ -17,6 +17,7 @@ bool Debug_COM_Enable = false;
  */
 void BMS_Debug_COM_Init()
 {
+	USART_Init(USART_1,NORMAL_POWER_MODE_BUAD_RATE);
 	if(Debug_COM_Enable == true)
 	{
 		if(MCU_Power_Mode == REGULAR_POWER_MODE)
